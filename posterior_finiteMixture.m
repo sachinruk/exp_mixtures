@@ -1,7 +1,7 @@
 function [lambda, pi]=posterior_finiteMixture(y,K,iter)
 
 % N=length(y);
-a=1e-6; b=1e-6; alpha=5;
+a=0.1; b=0.1; alpha=5;
 lambda=zeros(K,iter+1);
 pi=zeros(K,iter+1);
 lambda(:,1)=gamrnd(1,1,K,1);

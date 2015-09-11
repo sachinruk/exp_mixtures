@@ -13,14 +13,16 @@ a=1; b=1;
 % pi=drchrnd(alpha*ones(1,K),1)';
 pi=[0.4 0.6]';
 % lambda=gamrnd(a,1/b,K,1);
-lambda=[2 3]';
+lambda=[2 6]';
 z=mnrnd(1,pi,N);
 y=gamrnd(1,1./(z*lambda));
 
 % rng(1);
-[lambda, pi]=posterior_finiteMixture(y,K,1000);
+[lambda, pi]=posterior_finiteMixture(y,K,10000);
 
 %plot the posteriors
-figure; plot(pi(1,:),pi(2,:),'x')
+% figure; plot(pi(1,:),pi(2,:),'x')
 figure; hist(pi(1,:),40)
-figure ; plot(lambda(1,:), lambda(2,:), 'x')
+% figure ; plot(lambda(1,:), lambda(2,:), 'x')
+burnin=1000;
+hist2d(lambda(:,burnin:end),30,30,[0 20],[0,20])
