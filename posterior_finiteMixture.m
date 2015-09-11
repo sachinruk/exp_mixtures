@@ -1,20 +1,23 @@
-function [p_z,gam_a,gam_b,dir_par]=posterior_finiteMixture(y,K,iter)
+function [lambda, pi]=posterior_finiteMixture(y,K,iter)
 
-N=length(y);
+% N=length(y);
 a=1e-6; b=1e-6; alpha=5;
-lambda=gamrnd(1,1,K,1);
-pi=drchrnd(alpha*ones(1,K),1)';
+lambda=zeros(K,iter+1);
+pi=zeros(K,iter+1);
+lambda(:,1)=gamrnd(1,1,K,1);
+pi(:,1)=drchrnd(alpha*ones(1,K),1)';
+
 
 for i=1:iter
     %z variable
-    p_z=bsxfun(@times,exp(-y*lambda'),(pi.*lambda)');
-    p_z=bsxfun(@rdivide,p_z,sum(p_z,2));
-    z=mnrnd(1,p_z,N);
+    p_z=bsxfun(@plus,-y*lambda(:,i)',log(pi(:,i).*lambda(:,i))');
+    p_z=normalise(p_z);
+    z=mnrnd(1,p_z);
     %lambda variable
     n_k=sum(z);
     gam_a=a+n_k; gam_b=b+sum(bsxfun(@times,z,y));
-    lambda=gamrnd(gam_a,gam_b)';
+    lambda(:,i+1)=gamrnd(gam_a,1./gam_b)';
     %pi variable
     dir_par=alpha+n_k;
-    pi=drchrnd(dir_par,1)';
+    pi(:,i+1)=drchrnd(dir_par,1)';
 end
