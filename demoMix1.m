@@ -18,6 +18,7 @@ z=mnrnd(1,pi,N);
 y=gamrnd(1,1./(z*lambda));
 
 % rng(1);
+posterior_VBfiniteMixture(y,2,100);
 [lambda, pi]=posterior_finiteMixture(y,K,10000);
 
 %plot the posteriors
