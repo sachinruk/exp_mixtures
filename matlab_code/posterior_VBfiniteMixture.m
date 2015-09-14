@@ -1,4 +1,4 @@
-function [Elambda, Epi]=posterior_VBfiniteMixture(y,K,iter)
+function [Elambda, Epi, gam_a, gam_b]=posterior_VBfiniteMixture(y,K,iter)
 
 alpha=5;
 % N=length(y);
