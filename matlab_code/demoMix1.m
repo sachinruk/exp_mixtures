@@ -18,7 +18,9 @@ z=mnrnd(1,pi,N);
 y=gamrnd(1,1./(z*lambda));
 
 % rng(1);
+tic;
 [lambda, pi]=posterior_finiteMixture(y,K,10000);
+toc
 
 %plot the posteriors
 % figure; plot(pi(1,:),pi(2,:),'x')
