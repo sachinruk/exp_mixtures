@@ -8,7 +8,7 @@ rng(1);
 alpha=5;
 % K=10; 
 K=2;
-N=200;
+N=50;
 a=1; b=1;
 % pi=drchrnd(alpha*ones(1,K),1)';
 pi=[0.4 0.6]';
@@ -18,8 +18,11 @@ z=mnrnd(1,pi,N);
 y=gamrnd(1,1./(z*lambda));
 
 % rng(1);
-[Elambda, Epi, gam_a, gam_b]=posterior_VBfiniteMixture(y,2,100);
+%[Elambda, Epi, gam_a, gam_b]=posterior_VBfiniteMixture(y,2,100);
+tic;
 [lambda, pi]=posterior_finiteMixture(y,K,10000);
+toc
+
 
 %plot the posteriors
 % figure; plot(pi(1,:),pi(2,:),'x')

@@ -6,6 +6,8 @@ from dirichlet_sample import *
 from posterior_finiteMixture import *
 from normalise import *
 
+import time
+
 alpha=5;
 # K=10; 
 K=2;
@@ -19,8 +21,10 @@ pi=np.array([0.4, 0.6]);
 lambda_=np.array([2, 6]);
 z=np.random.multinomial(1,pi,N);
 y=np.random.gamma(1,1.0/np.dot(z,lambda_)).reshape(N,1);
-
+t = time.time()
 lambda_, pi=posterior_finiteMixture(y,K,10000);
+elapsed = time.time() - t
+print elapsed
 
 import matplotlib.pyplot as plt
 plt.plot(lambda_[:,0],lambda_[:,1],'.')
