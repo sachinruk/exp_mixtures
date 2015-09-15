@@ -1,5 +1,6 @@
 import numpy as np
 from normalise import *
+from multi_sample import *
 def posterior_finiteMixture(y,K,iter):
 
     # N=length(y);
@@ -12,9 +13,9 @@ def posterior_finiteMixture(y,K,iter):
 
     for i in range(1,len(pi)):
         #z variable
-        p_z=-np.dot(y,lambda_[i-1])+log(pi[i-1]*lambda_[i-1]);
+        p_z=-y*lambda_[i-1]+np.log(pi[i-1]*lambda_[i-1]);
         p_z=normalise(p_z);
-        z=np.random.multinomial(1,p_z);
+        z=categorical_sample(p_z);
         #lambda_ variable
         n_k=sum(z);
         gam_a=a+n_k; gam_b=b+sum(z*y);
@@ -22,3 +23,5 @@ def posterior_finiteMixture(y,K,iter):
         #pi variable
         dir_par=alpha+n_k;
         pi[i]=np.random.dirichlet(dir_par,1);
+        
+    return lambda_,pi
