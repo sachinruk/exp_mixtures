@@ -31,3 +31,4 @@ plt.plot(lambda_[:,0],lambda_[:,1],'.')
 plt.figure()
 plt.hist2d(lambda_[:,0],lambda_[:,1],bins=50)
 plt.show()
+
