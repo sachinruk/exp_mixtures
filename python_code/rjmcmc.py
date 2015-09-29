@@ -12,6 +12,14 @@ def posterior_finiteMixture(y,K,iterationsations):
 
 
     for i in range(1,iterations):
+        mu1,mu2=np.random.uniform(0,1,2)
+        lambda2_s[0]=lambda1*mu1/(1-mu1)
+        lambda2_s[1]=lambda1*(1-mu1)/mu1
+        pi_12=mu2
+        
+        A=min(1,)
+        
+        
         #z variable
         p_z=-y*lambda_[i-1]+np.log(pi[i-1]*lambda_[i-1]);
         p_z=normalise(p_z);
