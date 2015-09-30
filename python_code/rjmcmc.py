@@ -12,24 +12,21 @@ def posterior_finiteMixture(y,K,iterationsations):
 
 
     for i in range(1,iterations):
-        mu1,mu2=np.random.uniform(0,1,2)
-        lambda2_s[0]=lambda1*mu1/(1-mu1)
-        lambda2_s[1]=lambda1*(1-mu1)/mu1
-        pi_12=mu2
-        
-        A=min(1,)
-        
-        
-        #z variable
-        p_z=-y*lambda_[i-1]+np.log(pi[i-1]*lambda_[i-1]);
-        p_z=normalise(p_z);
-        z=categorical_sample(p_z);
-        #lambda_ variable
-        n_k=sum(z);
-        gam_a=a+n_k; gam_b=b+sum(z*y);
-        lambda_[i]=np.random.gamma(gam_a,1./gam_b);
-        #pi variable
-        dir_par=alpha+n_k;
-        pi[i]=np.random.dirichlet(dir_par,1);
-        
+        if state==1:
+            lambda1_s=lambda_[i]
+            mu1,mu2=np.random.uniform(0,1,2)
+            lambda2_s[0]=lambda1_s*mu1/(1-mu1)
+            lambda2_s[1]=lambda1_s*(1-mu1)/mu1
+            pi_12=mu2
+         else:
+             lambda2_s=lambda_[i]
+             lambda1_s=lambda2_s.prod()
+
+	q_theta2_recip=2*lambda1/(mu1*(1-mu1))
+        A=min(1,joint_ratio2(y,lambda2_s,lambda1_s,pi_12)*q_theta2_recip)
+	if A>np.random.uniform():
+            #accept move
+        else:
+            #keep old value
+    
     return lambda_,pi
