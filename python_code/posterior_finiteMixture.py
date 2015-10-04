@@ -1,17 +1,17 @@
 import numpy as np
 from normalise import *
 from multi_sample import *
-def posterior_finiteMixture(y,K,iter):
+def posterior_finiteMixture(y,K,iterationsations):
 
     # N=length(y);
     a=0.1; b=0.1; alpha=5;
-    lambda_=np.zeros((iter+1,K));
-    pi=np.zeros((iter+1,K));
+    lambda_=np.zeros((iterations+1,K));
+    pi=np.zeros((iterations+1,K));
     lambda_[0]=np.random.gamma(1,1,K);
     pi[0]=np.random.dirichlet(alpha*np.ones((1,K))[0],1)
 
 
-    for i in range(1,len(pi)):
+    for i in range(1,iterations):
         #z variable
         p_z=-y*lambda_[i-1]+np.log(pi[i-1]*lambda_[i-1]);
         p_z=normalise(p_z);
