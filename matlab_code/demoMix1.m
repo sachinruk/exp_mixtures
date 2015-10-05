@@ -17,8 +17,10 @@ lambda=[2 6]';
 z=mnrnd(1,pi,N);
 y=gamrnd(1,1./(z*lambda));
 
-% rng(1);
-%[Elambda, Epi, gam_a, gam_b]=posterior_VBfiniteMixture(y,2,100);
+rng(1);
+tic;
+[Elambda, Epi, gam_a, gam_b]=posterior_VBfiniteMixture(y,2,100);
+toc;
 tic;
 [lambda, pi]=posterior_finiteMixture(y,K,10000);
 toc

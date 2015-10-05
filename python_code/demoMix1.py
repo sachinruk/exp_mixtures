@@ -1,5 +1,5 @@
 import os
-os.chdir('/home/sachin/thesis/exp_mixtures/python_code/')
+os.chdir('/home/sachin/Documents/thesis/exp_mixtures/python_code/')
 
 import numpy as np
 from dirichlet_sample import *
