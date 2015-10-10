@@ -1,4 +1,4 @@
-import numpy as np
+#import numpy as np
 from normalise import *
 from multi_sample import *
 def posterior_finiteMixture(y,K,iterationsations):
