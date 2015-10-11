@@ -25,11 +25,11 @@ lambda_=np.array([2, 6]);
 z=np.random.multinomial(1,pi,N);
 y=np.random.gamma(1,1.0/np.dot(z,lambda_)).reshape(N,1);
 
-#t = time.time()
-#elapsed = time.time() - t
-#print elapsed
+# t = time.time()
+# elapsed = time.time() - t
+# print elapsed
 
-#run with unrestricted prior
+# run with unrestricted prior
 lambda_, pi=posterior_finiteMixture(y,K,10000);
 plt.figure()
 plt.plot(lambda_[:,0],lambda_[:,1],'.')
