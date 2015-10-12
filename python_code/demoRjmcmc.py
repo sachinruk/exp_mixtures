@@ -17,3 +17,6 @@ y = np.random.gamma(1, 1.0/np.dot(z, lambda_)).reshape(N, 1)
 extremes = [(1/y).min(), (1/y).max()]
 
 lambda_chain = posterior_finiteMixture(y, K, extremes, 200)
+
+print(lambda_chain)
+
