@@ -29,12 +29,15 @@ def posterior_finiteMixture(y,  K,  extremes,  iterations):
             log_joint_lik1 = (N*np.log(lambda1)-np.sum(lambda1*y)
                             -np.log(normC)-np.log(lambda1)
                             -np.log(K))
-        else:
+        else:  # state 2
             lambda2 = lambda_chain[-1]
             lambda1 = lambda2.prod()
             log_joint_lik1 = (N*np.log(lambda1)-np.sum(lambda1*y)
                             -np.log(normC)-np.log(lambda1)
                             -np.log(K))
+            # this is the iffy bit!!!!
+            mu1, mu2 = np.random.uniform(0, 1, 2)
+            pi_12 = np.array([mu2, 1-mu2])
             log_lik = logsumexp(np.log(lambda2*pi_12)-(y*lambda2), 1)
             log_joint_lik2 = np.sum(log_lik) \
                              -2*np.log(normC)-np.sum(np.log(lambda2))\
@@ -46,7 +49,7 @@ def posterior_finiteMixture(y,  K,  extremes,  iterations):
         if state == 2:
             A = min(1, np.exp(-alpha_ratio))
 
-        if A > np.random.uniform(): #accept move
+        if A > np.random.uniform():  # accept move
             if state == 2:
                 state = 1  # switch states
                 lambda_chain.append(lambda1)
