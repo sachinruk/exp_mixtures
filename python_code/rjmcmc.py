@@ -41,7 +41,7 @@ def posterior_finiteMixture(y,  K,  extremes,  iterations):
                             -np.log(K))
         else:  # state 2
             lambda2 = lambda2_chain[idx2-1]
-            lambda1 = lambda2.prod()
+            lambda1 = np.sqrt(lambda2.prod())
             log_joint_lik1 = (N*np.log(lambda1)-np.sum(lambda1*y)
                             -np.log(normC)-np.log(lambda1)
                             -np.log(K))

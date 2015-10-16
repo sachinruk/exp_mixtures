@@ -26,7 +26,7 @@ state2 = sum(states == 2);
 iter = 1e6;
 lambda12 = jeffreysPrior(iter, extremes);
 lambda22 = jeffreysPrior(iter, extremes);
-pi = betarnd(alpha, alpha, [iter, 1]);
+pi = betarnd(alpha, alpha, iter, 1);
 log_py = zeros(iter, 1);
 normC = diff(log(extremes));
 
@@ -44,8 +44,8 @@ log_py_k2 = logsumexp(log_py, 1)-log(iter);
 log_py_k1 = -log(normC)-N*log(sum(y))+log(diff(gammainc(N, sum(y)*extremes)));
 
 p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
-fprint(p_k1);
-fprint(state1/float(state1+state2));
+fprintf(p_k1);
+fprintf(state1/float(state1+state2));
 % plt.figure()
 % plt.plot(lambda1)
 % plt.show()
