@@ -4,19 +4,22 @@ close all
 
 alpha = 5;
 K = 2;
-N = 50;
+N = 100;
 a = 1;
 b = 1;
+iterations=20000;
+burnin=iterations*0.1;
 
 rng(1);
 pi = [0.4, 0.6];
 lambda_ = [2, 6];
 z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
-extremes = [min(1/y), max(1/y)];
+extremes = [min(1./y), max(1./y)];
 
-[lambda1, lambda2, states] = posteriorRjmcmc(y, K, extremes, 10000);
+[lambda1, lambda2, states] = posteriorRjmcmc(y, K, extremes, iterations);
 
+states=states(burnin:end);
 state1 = sum(states == 1);
 state2 = sum(states == 2);
 
@@ -41,11 +44,11 @@ end
 % b = log(1-pi)+log(lambda22)-lambda22*y.T
 
 log_py_k2 = logsumexp(log_py, 1)-log(iter);
-log_py_k1 = -log(normC)-N*log(sum(y))+log(diff(gammainc(N, sum(y)*extremes)));
+log_py_k1 = -log(normC)-N*log(sum(y))+gammaln(N)+log(diff(gammainc(sum(y)*extremes,N)));
 
 p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
-fprintf(p_k1);
-fprintf(state1/float(state1+state2));
+disp(p_k1);
+disp(state1/(state1+state2));
 % plt.figure()
 % plt.plot(lambda1)
 % plt.show()

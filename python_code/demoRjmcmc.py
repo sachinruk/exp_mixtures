@@ -45,7 +45,7 @@ for i in range(iter):
 # b = np.log(1-pi)+np.log(lambda22)-lambda22*y.T
 
 log_py_k2 = logsumexp(log_py, 0)-np.log(iter)
-log_py_k1 = -np.log(normC)-N*np.log(sum(y))+np.log(np.diff(sp.gammainc(N, sum(y)*extremes)))
+log_py_k1 = -np.log(normC)-N*np.log(sum(y))+sp.gammaln(N)+np.log(np.diff(sp.gammainc(N, sum(y)*extremes)))
 
 p_k1 = 1./(1.+np.exp(log_py_k2-log_py_k1))
 print(p_k1)
