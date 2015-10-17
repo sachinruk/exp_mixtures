@@ -74,6 +74,8 @@ for i =1:iterations
     state_transition(l:(l+1)) = [state state];
     l = l + 2;
 end
+lambda1_chain=lambda1_chain(1:(idx1-1));
+lambda2_chain=lambda2_chain(1:(idx2-1),:);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Posterior functions
@@ -87,10 +89,13 @@ z = mnrnd(1,p_z);
 function lambda2=q_lambda2(y, z, n_k, extremes)
 gam_a = n_k; gam_b = sum(bsxfun(@times,z,y));
 u = rand(1,length(n_k));
-endPoints=gammainc(gam_b.*extremes,gam_a);
-lambda_const = diff(endPoints);
-lambda2 = gammaincinv(endPoints(1)+u*lambda_const,gam_a)./gam_b;
-
+endPoints1=gammainc(gam_b(1).*extremes,gam_a(1));
+endPoints2=gammainc(gam_b(2).*extremes,gam_a(2));
+lambda_const1 = diff(endPoints1);
+lambda_const2 = diff(endPoints2);
+lambda12 = gammaincinv(endPoints1(1)+u(1)*lambda_const1,gam_a(1))./gam_b(1);
+lambda22 = gammaincinv(endPoints2(1)+u(2)*lambda_const2,gam_a(2))./gam_b(2);
+lambda2 = [lambda12 lambda22];
 idx = gam_a == 0;
 if sum(idx)  % if any values with gam_a==0
     endPoints = log(extremes);

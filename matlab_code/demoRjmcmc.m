@@ -52,7 +52,9 @@ log_py_k1 = -log(normC)-N*log(sum(y))+gammaln(N)+log(diff(gammainc(sum(y)*extrem
 p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
 disp(strcat('exact posterior of p(k=1|y): ',num2str(p_k1)));
 disp(strcat('simulated posterior of p(k=1|y): ',num2str(state1/(state1+state2))));
-% figure()
-% plot(lambda1)
-% figure()
-% plot(lambda2[:, 0], lambda2[:, 1], '.')
+
+%plot the outputs of simulated lambdas
+figure()
+hist(lambda1(lambda1<50 ),100); title('lambda11 posterior')
+hist2d(lambda2,40,40,[0 50],[0 50]); title('lambda2 posterior')
+view(90,270)
