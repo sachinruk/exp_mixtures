@@ -2,12 +2,12 @@ clear all
 clc
 close all
 
-alpha = 5;
+alpha = 0.1;
 K = 2;
 N = 100;
 a = 1;
 b = 1;
-iterations=20000;
+iterations=1000;
 burnin=iterations*0.1;
 
 % true generative model
@@ -20,3 +20,10 @@ extremes = [min(1./y), max(1./y)];
 
 %DP MCMC scheme to find posteriors
 [z,lambda] = DPposterior(y, extremes, iterations, alpha);
+[phi_z, Elambda]=DPVB(y,200);
+
+c=zeros(iterations,1);
+for i=1:iterations
+    c(i)=length(unique(z(:,i)));
+end
+disp(max(c))

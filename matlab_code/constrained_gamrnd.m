@@ -1,5 +1,5 @@
 function lambda = constrained_gamrnd(gam_a, gam_b, extremes)
-gam_a=full(gam_a); gam_b=full(gam_b);
+% gam_a=full(gam_a); gam_b=full(gam_b);
 K=length(gam_a); u=rand(K,1);
 endPoints=gammainc(gam_b*extremes,repmat(gam_a,1,2));
 % endPoints2=gammainc(gam_b(2).*extremes,gam_a(2));
@@ -13,5 +13,5 @@ idx = gam_a ==0;
 if sum(idx)
     endPoints=log(extremes);
     normConst=diff(endPoints);
-    lambda(idx)=exp(endPoints(idx,1)+u(idx).*normConst);
+    lambda(idx)=exp(endPoints(1)+u(idx).*normConst);
 end
