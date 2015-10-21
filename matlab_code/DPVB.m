@@ -1,18 +1,20 @@
-function [phi_z, Elambda]=DPVB(y,iterations)
+function [phi_z, Elambda, class]=DPVB(y,iterations,Ealpha)
 N=length(y);
-T=100;
-phi_z=ones(N,T)./T;
-Ealpha=rand;
+T=200;
+phi_z=rand(N,T);
+phi_z=bsxfun(@rdivide,phi_z,sum(phi_z,2));
+% Ealpha=rand;
 Elambda=zeros(iterations,T);
 for i=1:iterations
     [Elambda(i,:), Elnlambda]=q_lambda(y,phi_z);
     [lnV, ln1_V,V_a,V_b]=qV(phi_z,Ealpha);
-    [Ealpha, a,b]=q_alpha(ln1_V);     
+%     [Ealpha, a,b]=q_alpha(ln1_V);     
     phi_z=qz(y,lnV,ln1_V,Elambda(i,:), Elnlambda);
 end
+[~,class]=max(phi_z,[],2);
 
 function [Elambda,Elnlambda]=q_lambda(y,phi_z)
-delta=1e-9;
+delta=1;
 gam_a=sum(phi_z)+delta;
 gam_b=sum(bsxfun(@times,y,phi_z))+delta;
 Elambda=gam_a./gam_b;
@@ -28,8 +30,8 @@ Ealpha=a/b;
 %beta distribution approximation
 function [lnV, ln1_V, gamma_1,gamma_2]=qV(phi_z,Ealpha)
 gamma_1=(sum(phi_z)+1)';
-phi_z=cumsum(phi_z,2);
-phi_z=bsxfun(@minus,phi_z(:,end),phi_z);
+phi_z=1-cumsum(phi_z,2);
+% phi_z=bsxfun(@minus,phi_z(:,end),phi_z);
 gamma_2=(sum(phi_z)+Ealpha)';
 % gamma=[gamma_1 gamma_2];
 
