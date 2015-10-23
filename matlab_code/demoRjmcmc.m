@@ -8,7 +8,7 @@ N = 100;
 a = 1;
 b = 1;
 iterations=20000;
-burnin=iterations*0.1;
+% burnin=iterations*0.1;
 
 % true generative model
 rng(1);
@@ -17,11 +17,12 @@ lambda_ = [2, 6];
 z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
-
+gibbs_steps=3;
 %MCMC scheme to find posteriors
-[lambda1, lambda2, states] = posteriorRjmcmc(y, K, extremes, iterations);
+[lambda1, lambda2, states] = posteriorRjmcmc(y, K, extremes, iterations,gibbs_steps);
 
 % find how many are from state 1 and 2
+burnin=length(states)*0.1;
 states=states(burnin:end);
 state1 = sum(states == 1);
 state2 = sum(states == 2);
@@ -58,3 +59,15 @@ figure()
 hist(lambda1(lambda1<50 ),100); title('lambda11 posterior')
 hist2d(lambda2,40,40,[0 50],[0 50]); title('lambda2 posterior')
 view(90,270)
+idx=lambda2(:,1)<20; figure; hist(lambda2(idx,1),200)
+idx=lambda2(:,2)<20; figure; hist(lambda2(idx,2),200)
+
+%trace plots of lambda1
+figure; plot(lambda1(burnin:end))
+figure; plot(lambda2(burnin:end,1))
+figure; plot(lambda2(burnin:end,2))
+
+window=200;
+iat(lambda1,window)
+iat(lambda2(:,1),window)
+iat(lambda2(:,2),window)
