@@ -13,32 +13,36 @@ end
 state_transition = zeros(iterations*(1+gibbs_steps)+1, 1);
 
 %randomly generate very first iteration as state 1
-state = 1; 
+state = 1; goingup=1;
 idx1 = 1; idx2 = 1; %index keepers
-lambda1 = extremes(1)+(extremes(2)-extremes(1))*rand;
+lambda = extremes(1)+(extremes(2)-extremes(1))*rand;
 state_transition(1) = state;
-lambda_chain{1}(idx1) = lambda1;
+lambda_chain{1}(idx1) = lambda;
 
 idx1 = idx1 +1;
 l=2;
 for i =1:iterations
     % jump proposals from current state to new state along with new lambdas
-    if state == 1  % q(2 to 1)
-        lambda1 = lambda_chain{1}(idx1-1);
+    if goingup  % q(2 to 1)
+        lambda = lambda_chain{current_state}(idx1-1,:);
+        idx=randsample(length(lambda),1);
+        lambda=lambda(idx);
         mu = rand(2,1);
-        lambda2 = [lambda1*mu(1)/(1-mu(1)),  lambda1*(1-mu(1))/mu(1)];
-        pi_12 = [mu(2), 1-mu(2)];
+        lambda2 = [lambda(~idx) [lambda*mu(1)/(1-mu(1)),  lambda*(1-mu(1))/mu(1)]];
+        pi = [pi(~idx) pi(idx).*[mu(2), 1-mu(2)]];
     else % state 2 (q 1 to 2)
-        lambda2 = lambda_chain{2}(idx2-1,:);
-        lambda1 = sqrt(prod(lambda2));
-        mu(1) = lambda1/(lambda1+lambda2(2));
+        lambda2 = lambda_chain{current_state}(idx2-1,:);
+        idx=randsample(length(lambda),1);
+        lambda2 = lambda2(idx);
+        lambda = sqrt(prod(lambda2));
+        mu(1) = lambda/(lambda+lambda2(2));
     end
     log_lik = logsumexp(bsxfun(@plus,-(y*lambda2),log(lambda2.*pi_12)), 2);
     log_joint_lik2 = sum(log_lik)-2*log(normC)-sum(log(lambda2))...
                      -log(K);
-    log_joint_lik1 = N*log(lambda1)-sum(lambda1*y)-log(normC)-log(lambda1)...
+    log_joint_lik1 = N*log(lambda)-sum(lambda*y)-log(normC)-log(lambda)...
                     -log(K);
-    logq = log(2)+log(lambda1)-log(mu(1))-log(1-mu(1));
+    logq = log(2)+log(lambda)-log(mu(1))-log(1-mu(1));
     alpha_ratio = log_joint_lik2-log_joint_lik1+logq;
     A = min(0, alpha_ratio);
     if state == 2
@@ -46,14 +50,15 @@ for i =1:iterations
     end
 
     if A > log(rand)  % accept move
-        if state == 2
+        if goingup
+            if 
             state = 1;  % switch states
-            lambda_chain{1}(idx1) = lambda1;
+            lambda_chain{1}(idx1) = lambda;
             % Gibbs step
             for j=1:gibbs_steps
                 idx1 =idx1+1;
-                lambda1 = q_lambda(y, extremes); %gibbs step
-                lambda_chain{1}(idx1) = lambda1;                 
+                lambda = q_lambda(y, extremes); %gibbs step
+                lambda_chain{1}(idx1) = lambda;                 
             end
             idx1=idx1+1;
         else  % state 1
@@ -76,11 +81,11 @@ for i =1:iterations
             end
             idx2 = idx2+1;
         else
-            lambda_chain{1}(idx1) = lambda1;
+            lambda_chain{1}(idx1) = lambda;
             for j=1:gibbs_steps
                 idx1=idx1+1;
-                lambda1 = q_lambda(y, extremes); %gibbs step
-                lambda_chain{1}(idx1) = lambda1;            
+                lambda = q_lambda(y, extremes); %gibbs step
+                lambda_chain{1}(idx1) = lambda;            
             end
             idx1=idx1+1;
         end

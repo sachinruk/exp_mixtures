@@ -7,7 +7,7 @@ K = 2;
 N = 100;
 a = 1;
 b = 1;
-iterations=20000;
+iterations=50000;
 % burnin=iterations*0.1;
 
 % true generative model
@@ -46,9 +46,20 @@ for i=1:chains
     meanLambda2(i,:)=mean(lambda2{i});
     varLambda2(i,:)=var(lambda2{i});
 end
-iatLambda2 = bsxfun(@rdivide,var(meanLambda2),...
-                    bsxfun(@rdivide,varLambda2,cellfun(@length,lambda2)));
-iatLambda1 = var(meanLambda1)./(varLambda1./cellfun(@length,lambda1));
+
+tmp=lambda2{1};
+tmp2=lambda1{1};
+for i=2:chains
+    tmp=[tmp; lambda2{i}];
+    tmp2=[tmp2; lambda1{i}];
+end
+iatLambda1=var(meanLambda1)/(var(tmp2)/length(tmp2));
+iatLambda2=bsxfun(@rdivide,var(meanLambda2),(var(tmp)./length(tmp)));
+
+
+% iatLambda2 = bsxfun(@rdivide,var(meanLambda2),...
+%                     bsxfun(@rdivide,varLambda2,cellfun(@length,lambda2)));
+% iatLambda1 = var(meanLambda1)./(varLambda1./cellfun(@length,lambda1));
 
 window=100;
 iatLambda1est=zeros(chains,1);
