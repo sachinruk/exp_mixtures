@@ -18,7 +18,7 @@ z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
 
-gibbs_steps=3;
+gibbs_steps=1;
 %MCMC scheme to find posteriors
 chains=30;
 lambda1=cell(chains,1); lambda2=cell(chains,1);

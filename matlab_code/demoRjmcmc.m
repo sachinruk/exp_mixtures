@@ -57,17 +57,12 @@ disp(strcat('simulated posterior of p(k=1|y): ',num2str(state1/(state1+state2)))
 %plot the outputs of simulated lambdas
 figure()
 hist(lambda1(lambda1<50 ),100); title('lambda11 posterior')
-hist2d(lambda2,40,40,[0 50],[0 50]); title('lambda2 posterior')
+% hist2d(lambda2,40,40,[0 50],[0 50]); title('lambda2 posterior')
 view(90,270)
 idx=lambda2(:,1)<20; figure; hist(lambda2(idx,1),200)
 idx=lambda2(:,2)<20; figure; hist(lambda2(idx,2),200)
 
 %trace plots of lambda1
-figure; plot(lambda1(burnin:end))
-figure; plot(lambda2(burnin:end,1))
-figure; plot(lambda2(burnin:end,2))
-
-window=200;
-iat(lambda1,window)
-iat(lambda2(:,1),window)
-iat(lambda2(:,2),window)
+figure; plot(lambda1(burnin:end)); title('lambda_{11}')
+figure; plot(lambda2(burnin:end,1)); title('lambda_{12}')
+figure; plot(lambda2(burnin:end,2)); title('lambda_{22}')
