@@ -1,10 +1,10 @@
 clear all
-clc
+% clc
 close all
 
 alpha = 5;
 K = 2;
-N = 100;
+N = 50;
 a = 1;
 b = 1;
 iterations=20000;
@@ -54,7 +54,7 @@ disp(strcat('exact posterior of p(k=1|y): ',num2str(p_k1)));
 disp(strcat('simulated posterior of p(k=1|y): ',num2str(state1/(state1+state2))));
 
 %plot the outputs of simulated lambdas
-figure()
-hist(lambda1(lambda1<50 ),100); title('lambda11 posterior')
-hist2d(lambda2,40,40,[0 50],[0 50]); title('lambda2 posterior')
-view(90,270)
+% figure()
+% hist(lambda1(lambda1<50 ),100); title('lambda11 posterior')
+% hist2d(lambda2,40,40,[0 20],[0 20]); title('lambda2 posterior')
+% view(90,270)

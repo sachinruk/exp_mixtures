@@ -4,16 +4,17 @@ T=200;
 phi_z=rand(N,T);
 phi_z=bsxfun(@rdivide,phi_z,sum(phi_z,2));
 % Ealpha=rand;
-Elambda=zeros(iterations,T);
+% Elambda=zeros(iterations,T);
 for i=1:iterations
-    [Elambda(i,:), Elnlambda]=q_lambda(y,phi_z);
+    [Elambda, Elnlambda, lambda_a, lambda_b]=q_lambda(y,phi_z);
     [lnV, ln1_V,V_a,V_b]=qV(phi_z,Ealpha);
 %     [Ealpha, a,b]=q_alpha(ln1_V);     
     phi_z=qz(y,lnV,ln1_V,Elambda(i,:), Elnlambda);
+    lb(i)=lowerBound();    
 end
 [~,class]=max(phi_z,[],2);
 
-function [Elambda,Elnlambda]=q_lambda(y,phi_z)
+function [Elambda,Elnlambda,gam_a,gam_b]=q_lambda(y,phi_z)
 delta=1;
 gam_a=sum(phi_z)+delta;
 gam_b=sum(bsxfun(@times,y,phi_z))+delta;

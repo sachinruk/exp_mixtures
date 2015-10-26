@@ -33,7 +33,7 @@ for i =1:iterations
     end
     log_lik = logsumexp(bsxfun(@plus,-(y*lambda2),log(lambda2.*pi_12)), 2);
     log_joint_lik2 = sum(log_lik)-2*log(normC)-sum(log(lambda2))...
-                     -log(K);
+                     +gammaln(2*alpha)-2*gammaln(alpha)+(alpha-1)*sum(log(pi_12))-log(K);
     log_joint_lik1 = N*log(lambda1)-sum(lambda1*y)-log(normC)-log(lambda1)...
                     -log(K);
     logq = log(2)+log(lambda1)-log(mu(1))-log(1-mu(1));
