@@ -7,7 +7,8 @@ K = 2;
 N = 100;
 a = 1;
 b = 1;
-iterations=50000;
+iterations=20000;
+gibbs_steps=3;
 % burnin=iterations*0.1;
 
 % true generative model
@@ -18,7 +19,7 @@ z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
 
-gibbs_steps=1;
+
 %MCMC scheme to find posteriors
 chains=30;
 lambda1=cell(chains,1); lambda2=cell(chains,1);
@@ -31,11 +32,9 @@ end
 % iat(lambda1{i},window)
 % iat(lambda2{i}(:,1),window)
 % iat(lambda2{i}(:,2),window)
-
-for i=1:chains
-    burnin = round(length(lambda1{i})*0.1);
+burnin = round(length(lambda1{1})*0.1);
+for i=1:chains    
     lambda1{i}=lambda1{i}(burnin:end); 
-    burnin = round(length(lambda2{i})*0.1);
     lambda2{i}=lambda2{i}(burnin:end,:); 
 end
 
@@ -53,8 +52,9 @@ for i=2:chains
     tmp=[tmp; lambda2{i}];
     tmp2=[tmp2; lambda1{i}];
 end
-iatLambda1=var(meanLambda1)/(var(tmp2)/length(tmp2));
-iatLambda2=bsxfun(@rdivide,var(meanLambda2),(var(tmp)./length(tmp)));
+meanLambda1y=mean(tmp2);
+iatLambda1=var2(meanLambda1,meanLambda1y)/(var(tmp2)/length(lambda1{i}));
+iatLambda2=bsxfun(@rdivide,var(meanLambda2),(var(tmp)./length(lambda2{i})));
 
 
 % iatLambda2 = bsxfun(@rdivide,var(meanLambda2),...
