@@ -1,43 +1,48 @@
-function [lambda1_chain, lambda2_chain, pi_chain, state_transition] = ...
-                posteriorRjmcmc(y,  K,  extremes,  iterations, gibbs_steps)
+function [lambda_chain, state_transition] = ...
+                posteriorRjmcmc2(y,  K,  extremes,  iterations, gibbs_steps, dims)
 alpha = 5;
 N = length(y);
 
 normC = diff(log(extremes));
 
 % allocate space for lambda1/2 chains and state transitions
-lambda1_chain = zeros(iterations*(1+gibbs_steps), 1);
-lambda2_chain = zeros(iterations*(1+gibbs_steps), 2);
-pi_chain=zeros(iterations*(1+gibbs_steps), 1);
-state_transition = zeros(iterations*2, 1);
+lambda_chain=cell(dims,1);
+for i=1:dims
+    lambda_chain{i} = zeros(iterations*(1+gibbs_steps), i);
+end
+state_transition = zeros(iterations*(1+gibbs_steps)+1, 1);
 
 %randomly generate very first iteration as state 1
-state = 1; 
-% iterations = 1; iterations = 1; %index keepers
-lambda1 = extremes(1)+(extremes(2)-extremes(1))*rand;
+state = 1; goingup=1;
+idx1 = 1; idx2 = 1; %index keepers
+lambda = extremes(1)+(extremes(2)-extremes(1))*rand;
 state_transition(1) = state;
-% lambda1_chain(iterations) = lambda1;
+lambda_chain{1}(idx1) = lambda;
 
-idx =1;
-l=1;
+idx1 = idx1 +1;
+l=2;
 for i =1:iterations
     % jump proposals from current state to new state along with new lambdas
-    if state == 1  % q(2 to 1)
-%         lambda1 = lambda1_chain(iterations-1);
+    if goingup  % q(2 to 1)
+        lambda = lambda_chain{current_state}(idx1-1,:);
+        idx=randsample(length(lambda),1);
+        lambda=lambda(idx);
         mu = rand(2,1);
-        lambda2 = [lambda1*mu(1)/(1-mu(1)),  lambda1*(1-mu(1))/mu(1)];
-        pi_12 = [mu(2), 1-mu(2)];
+        lambda2 = [lambda(~idx) [lambda*mu(1)/(1-mu(1)),  lambda*(1-mu(1))/mu(1)]];
+        pi = [pi(~idx) pi(idx).*[mu(2), 1-mu(2)]];
     else % state 2 (q 1 to 2)
-%         lambda2 = lambda2_chain(iterations-1,:);
-        lambda1 = sqrt(prod(lambda2));
-        mu(1) = lambda1/(lambda1+lambda2(2));
+        lambda2 = lambda_chain{current_state}(idx2-1,:);
+        idx=randsample(length(lambda),1);
+        lambda2 = lambda2(idx);
+        lambda = sqrt(prod(lambda2));
+        mu(1) = lambda/(lambda+lambda2(2));
     end
     log_lik = logsumexp(bsxfun(@plus,-(y*lambda2),log(lambda2.*pi_12)), 2);
     log_joint_lik2 = sum(log_lik)-2*log(normC)-sum(log(lambda2))...
-                     +gammaln(2*alpha)-2*gammaln(alpha)+(alpha-1)*sum(log(pi_12))-log(K);
-    log_joint_lik1 = N*log(lambda1)-sum(lambda1*y)-log(normC)-log(lambda1)...
+                     -log(K);
+    log_joint_lik1 = N*log(lambda)-sum(lambda*y)-log(normC)-log(lambda)...
                     -log(K);
-    logq = log(2)+log(lambda1)-log(mu(1))-log(1-mu(1));
+    logq = log(2)+log(lambda)-log(mu(1))-log(1-mu(1));
     alpha_ratio = log_joint_lik2-log_joint_lik1+logq;
     A = min(0, alpha_ratio);
     if state == 2
@@ -45,59 +50,51 @@ for i =1:iterations
     end
 
     if A > log(rand)  % accept move
-        if state == 2
+        if goingup
+            if 
             state = 1;  % switch states
-            lambda1_chain(idx) = lambda1;
-            idx=idx+1;
+            lambda_chain{1}(idx1) = lambda;
             % Gibbs step
             for j=1:gibbs_steps
-                lambda1 = q_lambda(y, extremes); %gibbs step
-                lambda1_chain(idx) = lambda1;
-                idx=idx+1;
+                idx1 =idx1+1;
+                lambda = q_lambda(y, extremes); %gibbs step
+                lambda_chain{1}(idx1) = lambda;                 
             end
+            idx1=idx1+1;
         else  % state 1
             state = 2;  % switch states
-            lambda2_chain(idx,:)=lambda2;
-            pi_chain(idx)=pi_12(1);
-            idx=idx+1;
-            % Gibbs step
+            lambda_chain{2}(idx2,:) = lambda2;
             for j=1:gibbs_steps
+                idx2 = idx2+1;
                 [lambda2, pi_12]=gibbs_sampler2(y, pi_12, lambda2, alpha, extremes);
-                lambda2_chain(idx,:)=lambda2;
-                pi_chain(idx)=pi_12(1);
-                idx=idx+1;        
+                lambda_chain{2}(idx2,:) = lambda2;            
             end
+            idx2=idx2+1;
         end
     else  % if rejected proposal, keep old value
         if state == 2
-            lambda2_chain(idx,:)=lambda2;
-            pi_chain(idx)=pi_12(1);
-            idx=idx+1;
+            lambda_chain{2}(idx2,:) = lambda2;
             for j=1:gibbs_steps
+                idx2 = idx2+1;
                 [lambda2, pi_12]=gibbs_sampler2(y, pi_12, lambda2, alpha, extremes);
-                lambda2_chain(idx,:)=lambda2;
-                pi_chain(idx)=pi_12(1);
-                idx=idx+1;
+                lambda_chain{2}(idx2,:) = lambda2;
             end
+            idx2 = idx2+1;
         else
-            lambda1_chain(idx) = lambda1;
-            idx=idx+1;
+            lambda_chain{1}(idx1) = lambda;
             for j=1:gibbs_steps
-                lambda1 = q_lambda(y, extremes); %gibbs step
-                lambda1_chain(idx) = lambda1;            
-                idx=idx+1;
+                idx1=idx1+1;
+                lambda = q_lambda(y, extremes); %gibbs step
+                lambda_chain{1}(idx1) = lambda;            
             end
+            idx1=idx1+1;
         end
     end
     state_transition(l:(l+gibbs_steps)) = [state repmat(state,1,gibbs_steps)];
     l = l + gibbs_steps+1;
 end
-
-%fill up missing states
-lambda1_chain=fillLast(lambda1_chain);
-lambda2_chain(:,1)=fillLast(lambda2_chain(:,1));
-lambda2_chain(:,2)=fillLast(lambda2_chain(:,2));
-pi_chain=fillLast(pi_chain);
+lambda_chain{1}=lambda_chain{1}(1:(idx1-1));
+lambda_chain{2}=lambda_chain{2}(1:(idx2-1),:);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Posterior functions

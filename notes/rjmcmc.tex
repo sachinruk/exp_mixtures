@@ -37,7 +37,7 @@ p(z_i=1)=&\pi\\
 p(\pi) = & \text{Dir}(\alpha)\\
 p(k=j)= & 1/K
 \end{align}
-The limits on $\lambda_{jk}$ are such that $a=\min(1/y_i)$ and $b=\max(1/y_i)$. This is due to the fact that the mean of an exponential distribution is $1/\lambda$. Hence, it is a valid assumption that the mean of $y_i$ lies between $a$ and $b$.
+$z_i$ is an indicator variable which chooses from $\lambda_{12},\lambda_{22}$. The limits on $\lambda_{jk}$ are such that $a=\min(1/y_i)$ and $b=\max(1/y_i)$ for all $j,k$. This is due to the fact that the mean of an exponential distribution is $1/\lambda$. Hence, it is a valid assumption that the mean of $1/y_i$ lies between $a$ and $b$. $\alpha$ is chosen to be $1$ such that it portrays a uniform distribution over $[0,1]$. $K$ is chosen to be $2$ to ensure that each model is equally probable.
 
 \section{Jumping dimensions}
 We need to consider a Metropolis-Hastings (MH) step to consider going from one component to two components. The MH step in general is as follows:
@@ -81,7 +81,7 @@ Since we need the ratio of proposed states $ \frac{q(\theta_1^t|\theta_2^{t+1})}
 \subsection{Jumping from 2 to 1}
 The MH step is conducted using the reciprocal of $\alpha$ in the equation above. Apart from the identity that $\lambda_{11}=\sqrt{\lambda_{12}\lambda_{22}}$ we also require the equation, $\mu_1=\frac{\lambda_{12}}{\lambda_{11}+\lambda_{12}}$ which can be derived from equation \ref{eq:lambda_12}. $\mu_2$ which is equivalent to $\pi$ can be taken to be the previous $\pi=\mu_2$ that was generated at state 2.
 
-Note that this algorithm will not be sufficient to explore the posterior space. Consider $\lambda_{11}$ and note that currently it will only evaluate to one value, regardless of $\lambda_{12}, \lambda_{22}$. We employ a Gibbs sampler to efficiently explore the rest of the space.
+Note that this algorithm will not be sufficient to explore the posterior space. Consider $\lambda_{11}$ and note that currently it will only evaluate to one value, regardless of $\lambda_{12}, \lambda_{22}$. We employ a Gibbs sampler to efficiently explore each space separately.
 
 \subsection{Gibbs Samplers}
 \begin{align}
