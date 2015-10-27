@@ -4,10 +4,10 @@ close all
 
 alpha = 5;
 K = 2;
-N = 150;
+N = 250;
 a = 1;
 b = 1;
-iterations=100000;
+iterations=50000;
 % burnin=iterations*0.1;
 
 % true generative model
@@ -30,29 +30,30 @@ for i=1:models
     state(i) = sum(states == i);
 end
 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% % exact marginal likelihood
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% % p(y|k=2)
-% iter = 1e6;
-% lambda12 = jeffreysPrior(iter, extremes);
-% lambda22 = jeffreysPrior(iter, extremes);
-% pi = betarnd(alpha, alpha, iter, 1);
-% log_py2 = zeros(iter, 1);
-% 
-% for i= 1:iter
-%     a = log(pi(i))+log(lambda12(i))-lambda12(i)*y;
-%     b = log(1-pi(i))+log(lambda22(i))-lambda22(i)*y;
-%     log_pyi = [a b];
-%     log_py2(i) = sum(logsumexp(log_pyi, 2));
-% end
-% 
-% log_py_k2 = logsumexp(log_py2, 1)-log(iter);
-% % p(y|k=1)
-% normC = diff(log(extremes));
-% log_py_k1 = -log(normC)-N*log(sum(y))+gammaln(N)+log(diff(gammainc(sum(y)*extremes,N)));
-% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% exact marginal likelihood
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% p(y|k=2)
+iter = 5*1e4;
+log_py=cell(models,1);
+log_py_model=zeros(models,1);
+for j=1:models
+    lambda=zeros(iter,j);
+    for k=1:j
+        lambda(:,k)=jeffreysPrior(iter, extremes);
+    end
+    pi = drchrnd(repmat(alpha,1,j),iter);
+    log_py{j} = zeros(iter, 1);
+    for i= 1:iter
+        lambdas=lambda(i,:); pis=pi(i,:);
+        log_lik = logsumexp(bsxfun(@plus,-(y*lambdas),log(lambdas.*pis)), 2);
+        log_py{j}(i) = sum(log_lik);
+    end
+    log_py_model(j)=logsumexp(log_py{j})-log(iter);
+end
+p_k2=exp(log_py_model(2)-logsumexp(log_py_model));
+p_k2_est=state(2)/sum(state);
+
 % p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
 % disp(strcat('exact posterior of p(k=1|y): ',num2str(p_k1)));
 % disp(strcat('simulated posterior of p(k=1|y): ',num2str(state1/(state1+state2))));
