@@ -8,7 +8,7 @@ N = 100;
 a = 1;
 b = 1;
 iterations=20000;
-gibbs_steps=3;
+gibbs_steps=10;
 % burnin=iterations*0.1;
 
 % true generative model
