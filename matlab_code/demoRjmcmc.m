@@ -1,10 +1,10 @@
 clear all
-clc
+% clc
 close all
 
 alpha = 5;
 K = 2;
-N = 100;
+N = 50;
 a = 1;
 b = 1;
 iterations=100000;

@@ -4,6 +4,11 @@
 \usepackage{amsmath}
 \usepackage{cleveref}
 \usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
 \title{Reversible jump MCMC}
 \date{}
 \begin{document}
@@ -78,8 +83,16 @@ The MH step is conducted using the reciprocal of $\alpha$ in the equation above.
 
 Note that this algorithm will not be sufficient to explore the posterior space. Consider $\lambda_{11}$ and note that currently it will only evaluate to one value, regardless of $\lambda_{12}, \lambda_{22}$. We employ a Gibbs sampler to efficiently explore each space separately.
 
- \section{RJMCMC Algorithm}
+\subsection{Gibbs Samplers}
+\begin{align}
+& p(\lambda_{11}|y,k=1) \propto \lambda_{11}^{N-1}\exp(-\lambda_{11}\sum_{i=1}^{N}y_i)\qquad \lambda_{11}\in[a,b]\\
+& p(\lambda_{j2}|y,z,k=2) \propto \lambda_{j2}^{n_j-1}\exp(-\lambda_{j2}\sum_{i\in[j]}y_i)\qquad \lambda_{j2}\in[a,b]\\
+& p(z_i=j|y,\lambda_{12},\lambda_{22}) \propto \lambda_{j2}\exp(-\lambda_{j2}y_i)\pi\\
+& p(\pi) = Dir(\alpha+n_1,\alpha+n_2)
+\end{align}
 
+ \section{RJMCMC Algorithm}
+ See Algorithm \ref{alg:post}.
 \begin{algorithm}
 %    \SetAlgoLined
     \KwData{$y_i$, iterations, $a$, $b$}
@@ -130,7 +143,74 @@ Note that this algorithm will not be sufficient to explore the posterior space. 
 	 }  
 	 $stateChain.push([state state])$  
 }
-%    \caption{How to generate LaPlace variables from U~(0, 1)}
+    \caption{}
+    \label{alg:post}
     \end{algorithm}
+
+\clearpage
+\section{Results}
+For this experiment data is generated as follows:
+\begin{align*}
+& \pi =  0.4 \\
+& \lambda_{12},\lambda_{22} =  [2\quad 6] \\
+& z_i \sim \pi^{1(z_i=1)}(1-\pi)^{1(z_i=2)}\qquad i=1,\cdots,N\\
+& y_i \sim (p(y_i|\lambda_{12})^{1(z_i=1)}p(y_i|\lambda_{22})^{1(z_i=2)})\qquad i=1,\cdots,N
+\end{align*}
+where $p(y_i|\lambda_{j2})=\lambda_{j2}\exp(-\lambda_{j2}y_i)$.
+
+The posterior $p(k=1|y)$ is calculated using the simulations and compared against the true posterior. The true posterior is,
+\begin{align}
+p(k=1|y)=&\frac{p(y|k=1)p(k=1)}{p(y|k=1)p(k=1)+p(y|k=2)p(k=2)}
+\end{align}
+since the prior $p(k=1)=p(k=2)$, it may be ignored from the above proportion.
+\begin{align*}
+p(y|k=1)=& \int \prod_{i=1}^{N}p(y_i|\lambda_{11},k=1)p(\lambda_{11}) d\lambda_{11}\\
+p(y|k=2)=& \int \prod_{i=1}^{N}\left(\pi p(y_i|\lambda_{12},k=2)+(1-\pi)p(y_i|\lambda_{22},k=2)\right)p(\lambda_{12})p(\lambda_{22})p(\pi) d\lambda_{12}d\lambda_{22}d\pi
+\end{align*}
+In order to generate the exact posterior, we sample $10^6$ samples from the priors $p(\lambda_{11})$, $p(\lambda_{12})$, $p(\lambda_{22})$, $p(\pi)$. The posteriors are approximated as:
+\begin{align}
+p(y|k=1)\approx &\sum_{j=1}^{10^6}\prod_{i=1}^{N}p(y_i|\lambda_{11}^{(j)},k=1)\\
+p(y|k=2)\approx & \sum_{j=1}^{10^6} \prod_{i=1}^{N}\left(\pi^{(j)} p(y_i|\lambda_{12}^{(j)},k=2)+(1-\pi^{(j)})p(y_i|\lambda_{22}^{(j)},k=2)\right)
+\end{align}
+
+The above `exact' posterior is compared against the simulated posterior. The relative number of state 1 from stateChain is the posterior probability from the simulated set.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{llll}
+\hline
+& \multicolumn{3}{c}{N}\\
+\hline
+& 50 & 100 & 200 \\
+\hline
+Exact & 0.63991 & 0.51736 & 0.00048488\\
+Simulated & 0.64339 & 0.50834 & 0.00015789\\
+\hline
+\end{tabular}
+\caption{Comparison of simulated and exact posterior of $p(k=1|y)$.}
+\end{table}
+
+The posterior $p(\lambda|y,k=1)$ and the posterior $p(\lambda|y,k=2)$ are plotted below in Figure \ref{fig:posteriors} for N=100 case.
+
+\begin{figure}
+\centering
+\begin{subfigure}{0.3 \textwidth}
+\centering
+\includegraphics[height=1.5in]{lambda_11}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.3 \textwidth}
+\centering
+\includegraphics[height=1.5in]{lambda_22}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.3 \textwidth}
+\centering
+\includegraphics[height=1.5in]{lambda_22_3d}
+\caption{}
+\end{subfigure}
+\caption{}
+\label{fig:posteriors}
+\end{figure}
 
 \end{document}

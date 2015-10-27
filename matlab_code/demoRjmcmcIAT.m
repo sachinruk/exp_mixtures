@@ -70,3 +70,6 @@ for i=1:chains
     end
     iatLambda1est(i)=iat(lambda1{i},window);
 end
+
+disp([iatLambda1 iatLambda2])
+disp(mean([iatLambda1est iatLambda2est]))
