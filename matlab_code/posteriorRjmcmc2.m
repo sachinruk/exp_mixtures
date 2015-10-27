@@ -1,4 +1,4 @@
-function [lambda_chain, state_transition] = ...
+function [lambda_chain, pi_chain,state_transition] = ...
                 posteriorRjmcmc2(y,  K,  extremes,  iterations, gibbs_steps, dims)
 alpha = 5;
 normC = diff(log(extremes));
@@ -20,25 +20,26 @@ lambda_chain{state}(idx) = jeffreysPrior(1,extremes);
 pi_chain{state}(idx)=1;
 l=2;
 for i =1:iterations
+%     disp(i);
     % jump proposals from current state to new state along with new lambdas
     lambdaOld = lambda_chain{state}(idx,:);
     piOld=pi_chain{state}(idx,:);
     log_joint1=logJointLik(y,lambdaOld,piOld,K, normC);
     if goingup  
-        idx=choose_idx(1,state); %choose an index to split
+        idx2=choose_idx(1,state); %choose an index to split
         mu = rand(2,1);
-        lambda1=lambdaOld(idx);
+        lambda1=lambdaOld(idx2);
         lambda2=[lambda1*mu(1)/(1-mu(1)),  lambda1*(1-mu(1))/mu(1)];        
-        lambdaNew = [lambdaOld(~idx) lambda2];
-        piNew = [piOld(~idx) piOld(idx).*[mu(2), 1-mu(2)]];
+        lambdaNew = [lambdaOld(~idx2) lambda2];
+        piNew = [piOld(~idx2) piOld(idx2).*[mu(2), 1-mu(2)]];
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC);
     else % if goingdown
-        idx=choose_idx(2,state);
-        lambda2 = lambdaOld(idx);
+        idx2=choose_idx(2,state);
+        lambda2 = lambdaOld(idx2);
         lambda1 = sqrt(prod(lambda2));
         mu(1) = lambda1/(lambda1+lambda2(2));
-        lambdaNew = [lambdaOld(~idx) lambda1];
-        piNew = [piOld(~idx) sum(piOld(idx))];
+        lambdaNew = [lambdaOld(~idx2) lambda1];
+        piNew = [piOld(~idx2) sum(piOld(idx2))];
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC);
     end    
     logq = log(2)+log(lambda1)-log(mu(1))-log(1-mu(1));
@@ -68,10 +69,19 @@ for i =1:iterations
         pi_chain{state}(idx+j,:)=piNew;
     end
     idx=idx+gibbs_steps;
-    goingup=nextmove(state);
+    goingup=nextmove(state,dims);
     state_transition(l:(l+gibbs_steps)) = [state repmat(state,1,gibbs_steps)];
     l = l + gibbs_steps+1;
 end
+
+%fill up missing states
+for i=1:dims
+    for j=1:i
+        lambda_chain{i}(:,j)=fillLast(lambda_chain{i}(:,j));
+        pi_chain{i}(:,j)=fillLast(pi_chain{i}(:,j));
+    end
+end
+
 
 function goingup=nextmove(state,dims)
 if state==1
@@ -82,6 +92,6 @@ else
     if rand>0.5
         goingup=true;
     else
-        goingup=flase;
+        goingup=false;
     end
 end
