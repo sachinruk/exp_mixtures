@@ -7,7 +7,7 @@ K = 2;
 N = 150;
 a = 1;
 b = 1;
-iterations=6e5;
+iterations=3e5;
 % burnin=iterations*0.1;
 
 % true generative model
@@ -49,7 +49,7 @@ for j=1:models
     end
     log_py_model(j)=logsumexp(log_py(:,j),1)-log(iterations);
 end
-req_state=4;
+req_state=1;
 p_k2=exp(log_py_model(req_state)-logsumexp(log_py_model));
 p_k2_est=state(req_state)/sum(state);
 

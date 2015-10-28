@@ -32,7 +32,7 @@ for i =1:iterations
         lambdaNew = [lambdaOld(~idx2) lambda2];
         piNew = [piOld(~idx2) piOld(idx2).*[mu(2), 1-mu(2)]];
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
-        log_joint_ratio=log_joint2-log_joint1;
+        log_joint_ratio=log_joint2-log_joint1+log(piOld(idx2));
     else % if goingdown
         idx2=choose_idx(2,state);
         lambda2 = lambdaOld(idx2);
@@ -41,7 +41,7 @@ for i =1:iterations
         lambdaNew = [lambdaOld(~idx2) lambda1];
         piNew = [piOld(~idx2) sum(piOld(idx2))];
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
-        log_joint_ratio=log_joint1-log_joint2;
+        log_joint_ratio=log_joint1-log_joint2+log(sum(piOld(idx2)));
     end    
     logq = log(2)+log(lambda1)-log(mu(1))-log(1-mu(1));
     alpha_ratio = log_joint_ratio+logq;
