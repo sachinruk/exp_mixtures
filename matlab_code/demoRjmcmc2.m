@@ -7,7 +7,7 @@ K = 2;
 N = 150;
 a = 1;
 b = 1;
-iterations=3e5;
+iterations=5e4;
 % burnin=iterations*0.1;
 
 % true generative model
@@ -17,7 +17,7 @@ lambda_ = [2, 6];
 z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
-gibbs_steps=1; models=4;
+gibbs_steps=1; models=5;
 %MCMC scheme to find posteriors
 [lambda_chain, pi_chain, states] = posteriorRjmcmc2(y,K,extremes,...
                                       iterations,gibbs_steps,models,alpha);
@@ -29,6 +29,9 @@ state=zeros(models,1);
 for i=1:models
     state(i) = sum(states == i);
 end
+req_state=4;
+p_k2_est=state(req_state)/sum(state);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % exact marginal likelihood
@@ -49,9 +52,9 @@ for j=1:models
     end
     log_py_model(j)=logsumexp(log_py(:,j),1)-log(iterations);
 end
-req_state=1;
+
 p_k2=exp(log_py_model(req_state)-logsumexp(log_py_model));
-p_k2_est=state(req_state)/sum(state);
+
 
 % p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
 % disp(strcat('exact posterior of p(k=1|y): ',num2str(p_k1)));
