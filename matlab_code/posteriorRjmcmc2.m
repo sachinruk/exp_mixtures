@@ -1,6 +1,5 @@
 function [lambda_chain, pi_chain,state_transition] = ...
-                posteriorRjmcmc2(y,  K,  extremes,  iterations, gibbs_steps, dims)
-alpha = 5;
+                posteriorRjmcmc2(y,K,extremes,iterations,gibbs_steps,dims,alpha)
 normC = diff(log(extremes));
 
 % allocate space for lambda1/2 chains and state transitions
@@ -24,7 +23,7 @@ for i =1:iterations
     % jump proposals from current state to new state along with new lambdas
     lambdaOld = lambda_chain{state}(idx,:);
     piOld=pi_chain{state}(idx,:);
-    log_joint1=logJointLik(y,lambdaOld,piOld,K, normC);
+    log_joint1=logJointLik(y,lambdaOld,piOld,K, normC,alpha);
     if goingup  
         idx2=choose_idx(1,state); %choose an index to split
         mu = rand(2,1);
@@ -32,7 +31,8 @@ for i =1:iterations
         lambda2=[lambda1*mu(1)/(1-mu(1)),  lambda1*(1-mu(1))/mu(1)];        
         lambdaNew = [lambdaOld(~idx2) lambda2];
         piNew = [piOld(~idx2) piOld(idx2).*[mu(2), 1-mu(2)]];
-        log_joint2=logJointLik(y,lambdaNew,piNew,K, normC);
+        log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
+        log_joint_ratio=log_joint2-log_joint1;
     else % if goingdown
         idx2=choose_idx(2,state);
         lambda2 = lambdaOld(idx2);
@@ -40,10 +40,11 @@ for i =1:iterations
         mu(1) = lambda1/(lambda1+lambda2(2));
         lambdaNew = [lambdaOld(~idx2) lambda1];
         piNew = [piOld(~idx2) sum(piOld(idx2))];
-        log_joint2=logJointLik(y,lambdaNew,piNew,K, normC);
+        log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
+        log_joint_ratio=log_joint1-log_joint2;
     end    
     logq = log(2)+log(lambda1)-log(mu(1))-log(1-mu(1));
-    alpha_ratio = log_joint2-log_joint1+logq;
+    alpha_ratio = log_joint_ratio+logq;
     A = min(0, alpha_ratio);
     if ~goingup
         A = min(0, -alpha_ratio);

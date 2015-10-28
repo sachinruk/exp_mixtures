@@ -14,7 +14,7 @@ state_transition = zeros(iterations*2, 1);
 %randomly generate very first iteration as state 1
 state = 1; 
 % iterations = 1; iterations = 1; %index keepers
-lambda1 = extremes(1)+(extremes(2)-extremes(1))*rand;
+lambda1 = jeffreysPrior(1,extremes);
 state_transition(1) = state;
 % lambda1_chain(iterations) = lambda1;
 

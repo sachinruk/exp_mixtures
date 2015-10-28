@@ -4,10 +4,10 @@ close all
 
 alpha = 5;
 K = 2;
-N = 250;
+N = 150;
 a = 1;
 b = 1;
-iterations=50000;
+iterations=6e5;
 % burnin=iterations*0.1;
 
 % true generative model
@@ -17,10 +17,10 @@ lambda_ = [2, 6];
 z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
-gibbs_steps=1; models=3;
+gibbs_steps=1; models=4;
 %MCMC scheme to find posteriors
 [lambda_chain, pi_chain, states] = posteriorRjmcmc2(y,K,extremes,...
-                                            iterations,gibbs_steps,models);
+                                      iterations,gibbs_steps,models,alpha);
 
 % find how many are from state 1 and 2
 burnin=round(length(states)*0.1);
@@ -34,25 +34,24 @@ end
 % exact marginal likelihood
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % p(y|k=2)
-iter = 5*1e4;
-log_py=cell(models,1);
+log_py=zeros(iterations,models);
 log_py_model=zeros(models,1);
 for j=1:models
-    lambda=zeros(iter,j);
+    lambda=zeros(iterations,j);
     for k=1:j
-        lambda(:,k)=jeffreysPrior(iter, extremes);
+        lambda(:,k)=jeffreysPrior(iterations, extremes);
     end
-    pi = drchrnd(repmat(alpha,1,j),iter);
-    log_py{j} = zeros(iter, 1);
-    for i= 1:iter
+    pi = drchrnd(repmat(alpha,1,j),iterations);
+    for i= 1:iterations
         lambdas=lambda(i,:); pis=pi(i,:);
         log_lik = logsumexp(bsxfun(@plus,-(y*lambdas),log(lambdas.*pis)), 2);
-        log_py{j}(i) = sum(log_lik);
+        log_py(i,j) = sum(log_lik);
     end
-    log_py_model(j)=logsumexp(log_py{j})-log(iter);
+    log_py_model(j)=logsumexp(log_py(:,j),1)-log(iterations);
 end
-p_k2=exp(log_py_model(2)-logsumexp(log_py_model));
-p_k2_est=state(2)/sum(state);
+req_state=4;
+p_k2=exp(log_py_model(req_state)-logsumexp(log_py_model));
+p_k2_est=state(req_state)/sum(state);
 
 % p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
 % disp(strcat('exact posterior of p(k=1|y): ',num2str(p_k1)));

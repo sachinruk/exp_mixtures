@@ -4,10 +4,10 @@ close all
 
 alpha = 5;
 K = 2;
-N = 50;
+N = 150;
 a = 1;
 b = 1;
-iterations=100000;
+iterations=1e5;
 % burnin=iterations*0.1;
 
 % true generative model
