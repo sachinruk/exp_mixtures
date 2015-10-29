@@ -25,25 +25,34 @@ for i =1:iterations
     piOld=pi_chain{state}(idx,:);
     log_joint1=logJointLik(y,lambdaOld,piOld,K, normC,alpha);
     if goingup  
-        idx2=choose_idx(1,state); %choose an index to split
+%         idx2=choose_idx(1,state); %choose an index to split
+        idx2=randsample(state,1);
         mu = rand(2,1);
         lambda1=lambdaOld(idx2);
         lambda2=[lambda1*mu(1)/(1-mu(1)),  lambda1*(1-mu(1))/mu(1)];        
-        lambdaNew = [lambdaOld(~idx2) lambda2];
-        piNew = [piOld(~idx2) piOld(idx2).*[mu(2), 1-mu(2)]];
+        lambdaNew = [lambdaOld(1:(idx2-1)) lambda2 lambdaOld((idx2+1):state)];
+        piNew = [piOld(1:(idx2-1)) piOld(idx2).*[mu(2), 1-mu(2)] ...
+                                                    piOld((idx2+1):state)];
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
-        log_joint_ratio=log_joint2-log_joint1+log(piOld(idx2));
+        log_joint_ratio=log_joint2-log_joint1+log(piOld(idx2))...
+                        -log(state+1);
     else % if goingdown
-        idx2=choose_idx(2,state);
+%         idx2=choose_idx(2,state);
+        idx2=randsample(state,2);
         lambda2 = lambdaOld(idx2);
         lambda1 = sqrt(prod(lambda2));
-        mu(1) = lambda1/(lambda1+lambda2(2));
-        lambdaNew = [lambdaOld(~idx2) lambda1];
-        piNew = [piOld(~idx2) sum(piOld(idx2))];
+        mu(1) = lambda1/(lambda1+lambda2(2));        
+%         lambdaNew = [lambdaOld(~idx2) lambda1];
+%         lambdaNew =slideIn(lambdaOld, lambda1, idx2);
+        lambdaNew=lambdaOld; 
+        lambdaNew(idx2(1))=lambda1; lambdaNew(idx2(2))=[];
+        piNew=piOld; piNew(idx2(1))=sum(piOld(idx2)); piNew(idx2(2))=[];
+%         piNew = [piOld(~idx2) sum(piOld(idx2))];
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
-        log_joint_ratio=log_joint1-log_joint2+log(sum(piOld(idx2)));
+        log_joint_ratio=log_joint1-log_joint2+log(sum(piOld(idx2)))...
+                        -log(state);
     end    
-    logq = log(2)+log(lambda1)-log(mu(1))-log(1-mu(1));
+    logq = 2*log(2)+log(lambda1)-log(mu(1))-log(1-mu(1));
     alpha_ratio = log_joint_ratio+logq;
     A = min(0, alpha_ratio);
     if ~goingup
@@ -75,13 +84,13 @@ for i =1:iterations
     l = l + gibbs_steps+1;
 end
 
-%fill up missing states
-for i=1:dims
-    for j=1:i
-        lambda_chain{i}(:,j)=fillLast(lambda_chain{i}(:,j));
-        pi_chain{i}(:,j)=fillLast(pi_chain{i}(:,j));
-    end
-end
+% %fill up missing states
+% for i=1:dims
+%     for j=1:i
+%         lambda_chain{i}(:,j)=fillLast(lambda_chain{i}(:,j));
+%         pi_chain{i}(:,j)=fillLast(pi_chain{i}(:,j));
+%     end
+% end
 
 
 function goingup=nextmove(state,dims)

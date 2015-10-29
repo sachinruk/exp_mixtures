@@ -7,7 +7,7 @@ K = 2;
 N = 150;
 a = 1;
 b = 1;
-iterations=5e4;
+iterations=1e4;
 % burnin=iterations*0.1;
 
 % true generative model
@@ -17,45 +17,62 @@ lambda_ = [2, 6];
 z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
-gibbs_steps=1; models=5;
-%MCMC scheme to find posteriors
-[lambda_chain, pi_chain, states] = posteriorRjmcmc2(y,K,extremes,...
-                                      iterations,gibbs_steps,models,alpha);
 
-% find how many are from state 1 and 2
-burnin=round(length(states)*0.1);
-states=states(burnin:end);
-state=zeros(models,1);
-for i=1:models
-    state(i) = sum(states == i);
+iterations2=40; gibbs_steps=1; models=3;
+state=zeros(iterations2,models);
+for j=1:iterations2
+    %MCMC scheme to find posteriors
+    [lambda_chain, pi_chain, states] = posteriorRjmcmc2(y,K,extremes,...
+                                          iterations,gibbs_steps,models,alpha);
+    burnin=round(length(states)*0.1);
+    for i=1:models
+        state(j,i) = sum(states(burnin:end)== i);
+    end
+    % find how many are from state 1 and 2
 end
-req_state=4;
-p_k2_est=state(req_state)/sum(state);
 
+pis=bsxfun(@rdivide,state,sum(state,2));
+disp([mean(pis)-std(pis); mean(pis)+std(pis)]);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % exact marginal likelihood
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % p(y|k=2)
-log_py=zeros(iterations,models);
-log_py_model=zeros(models,1);
-for j=1:models
-    lambda=zeros(iterations,j);
-    for k=1:j
-        lambda(:,k)=jeffreysPrior(iterations, extremes);
+p_k=zeros(iterations2,models);
+for l=1:iterations2
+    log_py=zeros(iterations,models);
+    log_py_model=zeros(models,1);
+    for j=1:models
+        lambda=zeros(iterations,j);
+        for k=1:j
+            lambda(:,k)=jeffreysPrior(iterations, extremes);
+        end
+        pi = drchrnd(repmat(alpha,1,j),iterations);
+        for i= 1:iterations
+            lambdas=lambda(i,:); pis=pi(i,:);
+            log_lik = logsumexp(bsxfun(@plus,-(y*lambdas),log(lambdas.*pis)), 2);
+            log_py(i,j) = sum(log_lik);
+        end
+        log_py_model(j)=logsumexp(log_py(:,j),1)-log(iterations);
     end
-    pi = drchrnd(repmat(alpha,1,j),iterations);
-    for i= 1:iterations
-        lambdas=lambda(i,:); pis=pi(i,:);
-        log_lik = logsumexp(bsxfun(@plus,-(y*lambdas),log(lambdas.*pis)), 2);
-        log_py(i,j) = sum(log_lik);
+
+    % p_k_est=zeros(1,length(state));
+    
+    for i=1:models
+    %     p_k_est(i)=state(i)/sum(state);
+        p_k(l,i)=exp(log_py_model(i)-logsumexp(log_py_model));
     end
-    log_py_model(j)=logsumexp(log_py(:,j),1)-log(iterations);
 end
-
-p_k2=exp(log_py_model(req_state)-logsumexp(log_py_model));
-
-
+% disp(p_k_est)
+disp([mean(p_k)-std(p_k); mean(p_k)+std(p_k)]);
+% 
+% 
+% for i=1:length(lambda_chain)
+%     lambdas=lambda_chain{i}(:,1);
+%     idx=lambdas<50 & lambdas>0;
+%     lambdas=lambdas(idx);
+%     figure; hist(lambdas,100);
+% end
 % p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
 % disp(strcat('exact posterior of p(k=1|y): ',num2str(p_k1)));
 % disp(strcat('simulated posterior of p(k=1|y): ',num2str(state1/(state1+state2))));
