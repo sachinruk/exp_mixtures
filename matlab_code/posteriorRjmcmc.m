@@ -1,6 +1,5 @@
-function [lambda1_chain, lambda2_chain, pi_chain, state_transition] = ...
-                posteriorRjmcmc(y,  K,  extremes,  iterations, gibbs_steps)
-alpha = 5;
+function [lambda_chain, pi_chain, state_transition] = ...
+                posteriorRjmcmc(y,  K,  extremes,  iterations, gibbs_steps,alpha)
 N = length(y);
 
 normC = diff(log(extremes));
@@ -93,11 +92,15 @@ for i =1:iterations
     l = l + gibbs_steps+1;
 end
 
-%fill up missing states
-lambda1_chain=fillLast(lambda1_chain);
-lambda2_chain(:,1)=fillLast(lambda2_chain(:,1));
-lambda2_chain(:,2)=fillLast(lambda2_chain(:,2));
-pi_chain=fillLast(pi_chain);
+% %fill up missing states
+% lambda1_chain=fillLast(lambda1_chain);
+% lambda2_chain(:,1)=fillLast(lambda2_chain(:,1));
+% lambda2_chain(:,2)=fillLast(lambda2_chain(:,2));
+% pi_chain=fillLast(pi_chain);
+
+lambda_chain=cell(2,1);
+lambda_chain{1}=lambda1_chain;
+lambda_chain{2}=lambda2_chain;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Posterior functions
