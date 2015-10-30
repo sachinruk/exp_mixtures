@@ -39,6 +39,7 @@ for i =1:iterations
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
         log_joint_ratio=log_joint2-log_joint1+log(piOld(idx2));
         log_q_idx=log(2)-log(state+1);
+%         log_q_idx=0;
         log_q_state_jump=log(p_state(state+1))-log(p_state(state));
 %         if state==1
 %             log_q_state_jump=-log(2);
@@ -47,7 +48,7 @@ for i =1:iterations
 %         end
     else % if goingdown
 %         idx2=choose_idx(2,state);
-        idx2=randsample(state,2);
+        idx2=randsample(state,2); idx2=sort(idx2);
         lambda2 = lambdaOld(idx2);
         lambda1 = sqrt(prod(lambda2));
         mu(1) = lambda1/(lambda1+lambda2(2));        
@@ -60,9 +61,10 @@ for i =1:iterations
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
         log_joint_ratio=log_joint1-log_joint2+log(sum(piOld(idx2)));
         log_q_idx=log(2)-log(state);
-        if (abs(diff(idx2))~=1)
-            log_q_idx=log_q_idx-log(2);
-        end
+%         log_q_idx=log(state)-log(2);
+%         if (abs(diff(idx2))~=1)
+%             log_q_idx=log_q_idx-log(2);
+%         end
         log_q_state_jump=log(p_state(state))-log(p_state(state-1));
 %         if state==dims
 %             log_q_state_jump=log(2);

@@ -7,7 +7,7 @@ K = 2;
 N = 150;
 a = 1;
 b = 1;
-iterations=3e4;
+iterations=1e4;
 % burnin=iterations*0.1;
 
 % true generative model
@@ -18,7 +18,7 @@ z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
 
-iterations2=40; gibbs_steps=1; models=3;
+iterations2=20; gibbs_steps=1; models=3;
 state=zeros(iterations2,models);
 for j=1:iterations2
     %MCMC scheme to find posteriors
