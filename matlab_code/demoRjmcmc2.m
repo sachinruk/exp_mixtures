@@ -1,13 +1,13 @@
 clear all
 % clc
-% close all
+close all
 
 alpha = 5;
 K = 2;
-N = 150;
+N = 50;
 a = 1;
 b = 1;
-iterations= 2e4;
+iterations= 7e4;
 % burnin=iterations*0.1;
 
 % true generative model

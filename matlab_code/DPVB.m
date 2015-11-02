@@ -1,21 +1,36 @@
-function [phi_z, Elambda, class]=DPVB(y,iterations,Ealpha)
+function [phi_z_best, Elambda_best, class_best]=DPVB(y,iterations)
 N=length(y);
 T=200;
-phi_z=rand(N,T);
-phi_z=bsxfun(@rdivide,phi_z,sum(phi_z,2));
-% Ealpha=rand;
+
 % Elambda=zeros(iterations,T);
-for i=1:iterations
-    [Elambda, Elnlambda, lambda_a, lambda_b]=q_lambda(y,phi_z);
-    [lnV, ln1_V,V_a,V_b]=qV(phi_z,Ealpha);
-%     [Ealpha, a,b]=q_alpha(ln1_V);     
-    phi_z=qz(y,lnV,ln1_V,Elambda(i,:), Elnlambda);
-    lb(i)=lowerBound();    
+max_lb=-inf;
+restarts=20;
+for j=1:restarts
+    phi_z=rand(N,T);
+    phi_z=bsxfun(@rdivide,phi_z,sum(phi_z,2));
+    lb=zeros(iterations,1);
+    Ealpha=rand;
+    for i=1:iterations
+        [Elambda, Elnlambda, lambda_a, lambda_b]=q_lambda(y,phi_z);
+        [lnV, ln1_V,V_a,V_b]=qV(phi_z,Ealpha);
+        [Ealpha, a,b]=q_alpha(ln1_V);     
+        phi_z=qz(y,lnV,ln1_V,Elambda, Elnlambda);
+        lb(i)=lnlb(y,V_a,V_b,lnV,ln1_V,...
+                    lambda_a,lambda_b,Elambda,Elnlambda,phi_z,Ealpha,a,b);    
+    end
+    if lb(end)>max_lb 
+        %save parameters
+        max_lb=lb(end);
+        phi_z_best=phi_z;
+        Elambda_best=Elambda;
+    end
+    [~,class]=max(phi_z,[],2);
+    subplot(restarts/5,5,j); plot(lb); xlabel(length(unique(class)));
 end
-[~,class]=max(phi_z,[],2);
+[~,class_best]=max(phi_z_best,[],2);
 
 function [Elambda,Elnlambda,gam_a,gam_b]=q_lambda(y,phi_z)
-delta=1;
+delta=1e-6;
 gam_a=sum(phi_z)+delta;
 gam_b=sum(bsxfun(@times,y,phi_z))+delta;
 Elambda=gam_a./gam_b;

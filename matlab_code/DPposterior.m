@@ -23,7 +23,7 @@ for i=1:iter
     %posterior on lambdas
     %%%%%%%%%%%%%%%%%%%%%%%
     gam_b = full(sum(bsxfun(@times,z_current,y)));
-    lambda = constrained_gamrnd(n_k', gam_b',extremes);
+    lambda = constrained_gamrnd(n_k, gam_b,extremes);
     if size(lambdas,2)<length(lambda)
         extra_cols=length(lambda)-size(lambdas,2);
         lambdas=[lambdas zeros(iter,extra_cols)]; %append extra columns
