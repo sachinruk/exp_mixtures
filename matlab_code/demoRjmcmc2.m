@@ -1,13 +1,13 @@
 clear all
 % clc
-close all
+% close all
 
 alpha = 5;
 K = 2;
 N = 150;
 a = 1;
 b = 1;
-iterations=1e4;
+iterations= 2e4;
 % burnin=iterations*0.1;
 
 % true generative model
@@ -18,7 +18,7 @@ z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
 
-iterations2=20; gibbs_steps=1; models=3;
+iterations2=20; gibbs_steps=1; models=6;
 state=zeros(iterations2,models);
 for j=1:iterations2
     %MCMC scheme to find posteriors
@@ -68,12 +68,12 @@ end
 disp([mean(p_k)-std(p_k); mean(p_k)+std(p_k)]);
 % 
 % 
-% for i=1:length(lambda_chain)
-%     lambdas=lambda_chain{i}(:,1);
-%     idx=lambdas<50 & lambdas>0;
-%     lambdas=lambdas(idx);
-%     figure; hist(lambdas,100);
-% end
+for i=1:length(lambda_chain)
+    lambdas=lambda_chain{i}(:,1);
+    idx=lambdas<50 & lambdas>0;
+    lambdas=lambdas(idx);
+    figure; hist(lambdas,100);
+end
 % p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
 % disp(strcat('exact posterior of p(k=1|y): ',num2str(p_k1)));
 % disp(strcat('simulated posterior of p(k=1|y): ',num2str(state1/(state1+state2))));

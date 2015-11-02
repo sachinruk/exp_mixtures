@@ -26,7 +26,7 @@ for i =1:iterations
     lambdaOld = lambda_chain{state}(idx,:);
     piOld=pi_chain{state}(idx,:);
     log_joint1=logJointLik(y,lambdaOld,piOld,K, normC,alpha);
-%     log_q_state_jump=0;
+    log_q_idx=0;
     if goingup  
 %         idx2=choose_idx(1,state); %choose an index to split
         idx2=randsample(state,1);
@@ -38,7 +38,7 @@ for i =1:iterations
                                                     piOld((idx2+1):state)];
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
         log_joint_ratio=log_joint2-log_joint1+log(piOld(idx2));
-        log_q_idx=log(2)-log(state+1);
+%         log_q_idx=log(2)-log(state+1);
 %         log_q_idx=0;
         log_q_state_jump=log(p_state(state+1))-log(p_state(state));
 %         if state==1
@@ -48,7 +48,8 @@ for i =1:iterations
 %         end
     else % if goingdown
 %         idx2=choose_idx(2,state);
-        idx2=randsample(state,2); idx2=sort(idx2);
+%         idx2=randsample(state,2); idx2=sort(idx2);
+        idx2=randsample(state-1,1); idx2=[idx2 idx2+1];
         lambda2 = lambdaOld(idx2);
         lambda1 = sqrt(prod(lambda2));
         mu(1) = lambda1/(lambda1+lambda2(2));        
@@ -60,7 +61,7 @@ for i =1:iterations
 %         piNew = [piOld(~idx2) sum(piOld(idx2))];
         log_joint2=logJointLik(y,lambdaNew,piNew,K, normC,alpha);
         log_joint_ratio=log_joint1-log_joint2+log(sum(piOld(idx2)));
-        log_q_idx=log(2)-log(state);
+%         log_q_idx=log(2)-log(state);
 %         log_q_idx=log(state)-log(2);
 %         if (abs(diff(idx2))~=1)
 %             log_q_idx=log_q_idx-log(2);
