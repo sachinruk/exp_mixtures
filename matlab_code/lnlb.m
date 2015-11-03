@@ -1,12 +1,18 @@
 %lower bound to likelihood
 function [L]=lnlb(x,V_a,V_b,lnV,ln1_V,...
-                lambda_a,lambda_b,Elambda,Elnlambda,phi_z,Ealpha,a,b)
+                lambda_a,lambda_b,Elambda,Elnlambda,phi_z,Ealpha,a,b,a_prior)
 % % a=length(ln1_V)+delta;
 % % b=delta-sum(ln1_V);
 delta=1e-6;
-lnpalpha=-delta*Ealpha;
-lnqalpha=a*log(b)-gammaln(a)-b*Ealpha;
-lb_alpha=lnpalpha-lnqalpha;
+
+if a_prior
+    lnpalpha=-delta*Ealpha;
+    lnqalpha=a*log(b)-gammaln(a)-b*Ealpha;
+    lb_alpha=lnpalpha-lnqalpha;
+else
+    lb_alpha=0;
+end
+
 
 occ_clusters=(sum(phi_z)>0); %occupied clusters
 

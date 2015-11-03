@@ -57,5 +57,8 @@ for i=1:iter
     [idx,j]=find(z_current);
     z(idx,i+1)=j; 
 %     disp(i);
+    if mod(i,100)==0
+        disp(i);
+    end
 end
     

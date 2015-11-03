@@ -4,3 +4,7 @@ python_code/.idea/
 *.png
 .idea/*
 *.asv
+*.aux
+*.log
+*.dvi
+*.gz

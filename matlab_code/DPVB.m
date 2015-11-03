@@ -1,6 +1,16 @@
-function [phi_z_best, Elambda_best, class_best]=DPVB(y,iterations)
+function [phi_z_best, Elambda_best, class_best]=...
+                                            DPVB(y,iterations,varargin)
 N=length(y);
 T=200;
+
+prior_flag=true;
+if nargin>2
+    Ealpha=varargin{1};
+    prior_flag=false;
+    a=0;
+    b=0;
+end
+    
 
 % Elambda=zeros(iterations,T);
 max_lb=-inf;
@@ -9,14 +19,19 @@ for j=1:restarts
     phi_z=rand(N,T);
     phi_z=bsxfun(@rdivide,phi_z,sum(phi_z,2));
     lb=zeros(iterations,1);
-    Ealpha=rand;
+    if prior_flag
+        Ealpha=rand;
+    end
     for i=1:iterations
         [Elambda, Elnlambda, lambda_a, lambda_b]=q_lambda(y,phi_z);
         [lnV, ln1_V,V_a,V_b]=qV(phi_z,Ealpha);
-        [Ealpha, a,b]=q_alpha(ln1_V);     
+        if prior_flag
+            [Ealpha, a,b]=q_alpha(ln1_V);     
+        end
         phi_z=qz(y,lnV,ln1_V,Elambda, Elnlambda);
         lb(i)=lnlb(y,V_a,V_b,lnV,ln1_V,...
-                    lambda_a,lambda_b,Elambda,Elnlambda,phi_z,Ealpha,a,b);    
+                    lambda_a,lambda_b,Elambda,Elnlambda,phi_z,...
+                    Ealpha,a,b,prior_flag);    
     end
     if lb(end)>max_lb 
         %save parameters
@@ -24,8 +39,8 @@ for j=1:restarts
         phi_z_best=phi_z;
         Elambda_best=Elambda;
     end
-    [~,class]=max(phi_z,[],2);
-    subplot(restarts/5,5,j); plot(lb); xlabel(length(unique(class)));
+%     [~,class]=max(phi_z,[],2);
+%     subplot(restarts/5,5,j); plot(lb); xlabel(length(unique(class)));
 end
 [~,class_best]=max(phi_z_best,[],2);
 
