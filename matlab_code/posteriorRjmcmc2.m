@@ -41,6 +41,7 @@ for i =1:iterations
 %         log_q_idx=log(2)-log(state+1);
 %         log_q_idx=0;
         log_q_state_jump=log(p_state(state+1))-log(p_state(state));
+%         log_pi_factor=
 %         if state==1
 %             log_q_state_jump=-log(2);
 %         elseif state==(dims-1)

@@ -7,7 +7,7 @@ K = 2;
 N = 50;
 a = 1;
 b = 1;
-iterations= 7e4;
+iterations= 1e4;
 % burnin=iterations*0.1;
 
 % true generative model
