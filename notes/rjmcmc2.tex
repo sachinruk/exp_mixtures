@@ -143,56 +143,70 @@ Note that this algorithm will not be sufficient to explore the posterior space. 
 %    \SetAlgoLined
     \KwData{$y_i$, $K$, iterations, $a$, $b$}
     \KwResult{Poseterior values of $\lambda_{[k],\cdot},\pi_{[k],\cdot}$ and state transitions.}
-	Initialise $stateChain(1)=1$ and $\lambda_{1}Chain(1)\sim p(\lambda|a,b)$\\
+	Initialise $stateChain(1)=1$ and $\lambda_{1}chain(1)\sim p(\lambda|a,b)$\\
     \For{$t =2:iterations$}{
-    $\lambda_{old}=\lambda Chain\{d(t)\}(last)$\\
-    $\pi_{old}=\pi Chain\{d(t)\}(last)$\\
-    $p_1(y,\lambda_{old},\pi_{old},K)$\\
+    $\lambda_{old}=\lambda chain\{d(t)\}(last)$\\
+    $\pi_{old}=\pi chain\{d(t)\}(last)$\\
+    $p_1=p(y,\lambda_{old},\pi_{old},K)$\\
     \eIf{going up}{
     idx = randomly sample from $\{1,2,\cdots,k\}$\\
-    $\lambda_{[k+1],\cdot}=\lambda_{old,\cdot}$\\
-    $\lambda_{[k],idx}=\lambda_{1}Chain(last)$\\
+    $\lambda_{[k+1],/idx}=\lambda_{old,/idx}$\\
+%    $\lambda_{[k],idx}=\lambda chain(last)$\\
     $\mu_1,\mu_2\sim  \,U(0,1)$\\
-    $\lambda_{12}=\lambda_{old,idx}\frac{\mu_1}{1-\mu_1}$\\
-    $\lambda_{22}=\lambda_{old,idx}\frac{1-\mu_1}{\mu_1}$\\
-    $\pi=\mu_2$
+    $\lambda_{[k+1],idx}=\lambda_{old,idx}[\frac{\mu_1}{1-\mu_1}\quad \frac{1-\mu_1}{\mu_1}]$\\
+%    $\lambda_{22}=\lambda_{old,idx}$\\
+	$\pi_{[k+1],\cdot}=\pi_{old,\cdot}$\\
+    $\pi_{[k+1],idx}=\pi_{old,idx}[\mu_2\quad 1-\mu_2]$\\
+    $p_2=p(y,\lambda_{[k+1]},\pi_{[k+1]},K)$\\
+    $p_{ratio}=p_2/p_1$\\
+   	$\lambda_1=\lambda_{old,idx}$\\
+   	$\pi_1=\pi_{old,idx}$\\
+   	$q_{transition}=q(k+1|k)/q(k|k+1)$
     }{
-	$\lambda_{12},\lambda_{22}=\lambda_{2}Chain(last)$\\
-	$\lambda_{[k],idx} = \sqrt{\lambda_{12}\lambda_{22}}$\\
-   	$\mu_1 = \frac{\lambda_{12}}{\lambda_{[k],idx}+\lambda_{12}}$
+    idx = randomly sample from $\{1,2,\cdots,k-1\}$\\
+    $\lambda_{[k-1],/idx}=\lambda_{old,/idx}$\\
+    $\pi_{[k-1],/idx}=\pi_{old,/idx}$\\
+%    $\lambda_1=$\\
+	$\lambda_{[k-1],idx}=\sqrt{\lambda_{old,idx}\lambda_{old,idx+1}}$\\
+%	$\lambda_{[k],idx} = \sqrt{\lambda_{12}\lambda_{22}}$\\
+	$\pi_{[k-1],idx}=\pi_{[k],idx}+\pi_{[k],idx+1}$\\
+   	$\mu_1 = \frac{\lambda_{[k],idx+1}}{\lambda_{[k-1],idx}+\lambda_{[k],idx+1}}$\\
+   	$p_2=p(y,\lambda_{[k-1]},\pi_{[k-1]},K)$\\
+   	$p_{ratio}=p_1/p_2$\\
+   	$\lambda_1=\lambda_{[k-1],idx}$\\
+   	$\pi_1=\pi_{[k-1],idx}$\\
+   	$q_{transition}=q(k|k-1)/q(k-1|k)$
     }
-    \vspace{-1cm}
-    \begin{flalign*}
-    & p(y|\lambda_{12},\lambda_{22},\pi,k=2) = \prod_{i=1}^N(\pi\lambda_{12}\exp(-\lambda_{12}y_i)+(1-\pi)\lambda_{22}\exp(-\lambda_{22}y_i))\\
-    & p(\lambda_{12},\lambda_{22},\pi,k=2) = \frac{1}{C^2}\frac{1}{\lambda_{12}\lambda_{22}}\pi^{\alpha-1}(1-\pi)^{\alpha-1}\frac{1}{K}\\
-    & p(y|\lambda_{[k],idx},k=1) = \lambda_{[k],idx}^N\exp(-\lambda_{[k],idx}\sum_{i=1}^{N}y_i)\\
-    & p(\lambda_{[k],idx},k)=\frac{1}{C}\frac{1}{\lambda_{[k],idx}}\frac{1}{K}\\
-    & \alpha_\star \coloneqq\left( \frac{p(y|\lambda_{12},\lambda_{22},\pi,k=2)p(\lambda_{12},\lambda_{22},\pi,k=2)}{p(y|\lambda_{[k],idx},k=1)p(\lambda_{[k],idx},k)}\right)\left(\frac{2\lambda_{[k],idx}}{\mu_1(1-\mu_1)}\frac{1}{q(\mu_1)q(\mu_2)}\right)
-    \end{flalign*}    
-    \If{state is 1}{
+	$\alpha_\star=p_{ratio}q_{transition}\frac{2\lambda_{1}\pi_{1}}{\mu_1(1-\mu_1)}$\\
+%    \vspace{-1cm}
+%    \begin{flalign*}
+%    & p(y|\lambda_{12},\lambda_{22},\pi,k=2) = \prod_{i=1}^N(\pi\lambda_{12}\exp(-\lambda_{12}y_i)+(1-\pi)\lambda_{22}\exp(-\lambda_{22}y_i))\\
+%    & p(\lambda_{12},\lambda_{22},\pi,k=2) = \frac{1}{C^2}\frac{1}{\lambda_{12}\lambda_{22}}\pi^{\alpha-1}(1-\pi)^{\alpha-1}\frac{1}{K}\\
+%    & p(y|\lambda_{[k],idx},k=1) = \lambda_{[k],idx}^N\exp(-\lambda_{[k],idx}\sum_{i=1}^{N}y_i)\\
+%    & p(\lambda_{[k],idx},k)=\frac{1}{C}\frac{1}{\lambda_{[k],idx}}\frac{1}{K}\\
+%    & \alpha_\star \coloneqq\left( \frac{p(y|\lambda_{12},\lambda_{22},\pi,k=2)p(\lambda_{12},\lambda_{22},\pi,k=2)}{p(y|\lambda_{[k],idx},k=1)p(\lambda_{[k],idx},k)}\right)\left(\frac{2\lambda_{[k],idx}}{\mu_1(1-\mu_1)}\frac{1}{q(\mu_1)q(\mu_2)}\right)
+%    \end{flalign*}    
+    \If{going down}{
        	$\alpha_\star\coloneqq 1/\alpha_\star$
     }
     $A\coloneqq \min(1,\alpha_\star)$\\
     $u\sim U(0,1)$  \\
     \eIf{$A>u$}{
 	    (Accept transition proposal)\\
-	    \eIf{ state is 2}{
-	    	$\lambda_1Chain.push(\lambda_{[k],idx})$\\
-	    	$\lambda_1Chain.push(GibbsSampler1(y,a,b))$
+	    \eIf{going up}{
+	    	$\lambda chain\{k+1\}.push(\lambda_{[k+1],\cdot})$\\
+	    	$\lambda chain\{k+1\}.push(GibbsSampler(y,a,b))$\\
+	    	state chain.push(k+1)
 	    }{
-	    	$\lambda_2Chain.push(\lambda_{12},\lambda_{22})$
-	    	$\lambda_2Chain.push(GibbsSampler2(y,\pi, \lambda_{12},\lambda_{22},\alpha,a,b))$
-	    }
-	    Switch states
-	 }{\eIf{ state is 2}{
-	     $\lambda_2Chain.push(\lambda_{12},\lambda_{22})$
-	     	    	$\lambda_2Chain.push(GibbsSampler2(y,\pi, \lambda_{12},\lambda_{22},\alpha,a,b))$
-	     }{
-	     	$\lambda_1Chain.push(\lambda_{[k],idx})$\\
-	     	    	$\lambda_1Chain.push(GibbsSampler1(y,a,b))$
-	     }
-	 }  
-	 $stateChain.push([state state])$  
+	    	$\lambda chain\{k-1\}.push(\lambda_{[k-1],\cdot})$\\
+		    $\lambda chain\{k-1\}.push(GibbsSampler(y,a,b))$\\
+		    state chain.push(k-1)
+	    }	    
+	 }{
+	    $\lambda chain\{k\}.push(\lambda_{[k],\cdot})$\\
+	    $\lambda chain\{k\}.push(GibbsSampler(y,a,b))$\\
+		state chain.push(k)
+	 }
 	}
     \caption{}
     \label{alg:post}
