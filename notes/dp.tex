@@ -2,11 +2,14 @@
 \usepackage[]{algorithm2e}
 \usepackage{algpseudocode}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{cleveref}
 \usepackage{mathtools}
 \usepackage{graphicx}
 \usepackage{caption}
 \usepackage{subcaption}
+\usepackage{bm}
+%\usepackage{cases}
 
 \input{eqn_abbr}
 
@@ -23,6 +26,25 @@ p(z_n=k|z_{/n},\alpha)=\frac{n_k}{N-1+\alpha}\\
 p(x_n|\mathbf{\lambda},z_n)=\lambda_{z_n}\exp(-\lambda_{z_n}x_n)
 \end{align}
 
+The posteriors on the given model are as follows. For $z_n$:
+\begin{align}
+\nonumber & \tilde{p}(z_n=k|z_{/n},x_n,\mathbf{\lambda})\propto 
+\begin{cases}
+\lambda_{k}\exp(-\lambda_{k}x_n) n_k\quad & \text{if }k\le K\\
+\lambda_{k}\exp(-\lambda_{k}x_n) \alpha\quad & \text{if }k= K+1
+%\exp{x} & \text{if } x \geq 0 \\
+%   1       & \text{if } x < 0
+\end{cases}\\
+ \therefore & p(z_n=k|z_{/n},x_n,\mathbf{\lambda})=\frac{\tilde{p}(z_n=k|z_{/n},x_n,\mathbf{\lambda})}{\sum_{k=1}^{K+1}\tilde{p}(z_n=k|z_{/n},x_n,\mathbf{\lambda})}
+\end{align}
+where $K$ is the number of clusters which is currently occupied.
+
+For $\lambda_t$:
+\begin{align}
+\nonumber & p(\lambda_t|\cx,\cz)=\prod_{n=1}^{N}\clrbracket{\lambda_t\exp(-\lambda_t x_n)}^{1(z_n=t)}\frac{1}{\lambda_t}\\
+& p(\lambda_t|\cx,\cz)=\lambda^{n_t-1}\exp\clrbracket{-\lambda_t\sum_{n\in t} x_n}\qquad \lambda_t\in [a,b]
+\end{align}
+
 \section{Variational Bayes Method}
 Model:
 \begin{align}
@@ -32,33 +54,43 @@ v_i|\alpha \sim & \, Be(1,\alpha)\quad i\in\{1,...,T\}
 \label{eq:v}\\
 \lambda_i\sim & \, Ga(\delta,\delta)\quad i\in\{1,...,T\}\\
 %\kappa_i|a,b\sim & \, Ga(\delta,\delta) \quad i\in\{1,...,\infty\}\\
-\mathbf{z}_n|\mathbf{v}\sim & \, Mult(\pi(\mathbf{v})) \quad n\in\{1,...,N\} \\
+\mathbf{z}_n|\mathbf{v}\sim & \, Cat(\cpi(\mathbf{v})) \quad n\in\{1,...,N\} \\
 \mathbf{x}_n|\mathbf{z}_n\sim & \, exp(\lambda_{z_n}) \quad n\in\{1,...,N\}
 \label{eq:gen}
 \end{align}
-In this case we consider the truncated DP where the number of clusters is limited by $T$, which is a large number. This implies that $v_{T+1}=1$.
+where $\delta$ is taken to be a small value such that it portrays uninformative priors, $Cat$ is a categorical distribution with parameters $\cpi$. The elements $\cpi_i$ are a function of $\mathbf{v}$ such that 
+\begin{align}
+\cpi_i=v_i\prod_{j=1}^{i-1}(1-v_j)
+\end{align}
+This is re-parametrised in equation \ref{eq:z}.  In this case we consider the truncated DP where the number of clusters is limited by $T$, which is a large number. This implies that $v_{T+1}=1$.
+
+Some handy reformulations:
+\begin{align}
+p(z_n=t|\mathbf{v})=& \prod_{i=1}^{T}(1-v_i)^{1((z_n=t)>i)}v_i^{1((z_n=t)=i)}\label{eq:z}\\
+p(x_n|z_n=i)= &\prod_{n=1}^{N} \clrbracket{\lambda_i\exp(-\lambda_i x_n)}^{1(z_n=i)}
+\end{align}
 
 \textbf{For $\alpha$},
 \begin{align}
-\nonumber&\prod_{i=1}^{\infty}p(v_i|\alpha)p(\alpha)\\
-\nonumber\log q(\alpha)\propto &  \sum_{i=1}^{\infty}\clrbracket{ \log\clrbracket{\frac{\Gamma(1+\alpha)}{\Gamma(1)\Gamma(\alpha)}}+\alpha\clrangle{\log (1-v_i)}}+(\delta-1)\log \alpha -(\delta)\alpha\\
+\nonumber&\prod_{i=1}^{T}p(v_i|\alpha)p(\alpha)\\
+\nonumber\log q(\alpha)\propto &  \sum_{i=1}^{T}\clrbracket{ \log\clrbracket{\frac{\Gamma(1+\alpha)}{\Gamma(1)\Gamma(\alpha)}}+\alpha\clrangle{\log (1-v_i)}}+(\delta-1)\log \alpha -(\delta)\alpha\\
 \propto & (T+\delta-1)\log \alpha-\clrbracket{\delta-\sum_{i=1}^{T} \clrangle{\log (1-v_i)}} \alpha
 \end{align}
 Thus we have a gamma distribution on $\alpha$. The expected value $\clrangle{\alpha}=\frac{T+\delta}{\delta-\sum_{i=1}^{T} \clrangle{\log (1-v_i)}}$.
 
 \textbf{For $v_i $}
 \begin{align}
-\nonumber& \prod_{n=1}^{N}p(z_n|\bigcup_{i=1}^{\infty}v_i)\prod_{i=1}^{\infty}p(v_i|\alpha)\\
-\nonumber \log q(v_i)\propto & \csum \clrangle{\log p(z_n|\bigcup_{i=1}^{\infty}v_i)}+\clrangle{\log p(v_i|\alpha)}\\
-\nonumber \propto&\sum_{n=1}^{N}1(z_n>i)\log(1-v_i)+1(z_n=i)\log(v_i)+(\clrangle{\alpha}-1)\log (1-v_i)\\
-q(v_i) \propto & \,v_i^{\sum_{n=1}^{N} q(z_n=i)+1-1}(1-v_i)^{\sum_{n=1}^{N} q(z_n>i)+\clrangle{\alpha}-1}
+\nonumber& \prod_{n=1}^{N}p(z_n|\mathbf{v})p(v_i|\alpha)\\
+\nonumber \log q(v_i)\propto & \csumn \clrangle{\log p(z_n|\mathbf{v})}+\clrangle{\log p(v_i|\alpha)}\\
+\nonumber \propto&\sum_{n=1}^{N}\clrangle{1(z_n>i)}\log(1-v_i)+\clrangle{1(z_n=i)}\log(v_i)+(\clrangle{\alpha}-1)\log (1-v_i)\\
+q(v_i) \propto & \,v_i^{\gamma_{1i}-1}(1-v_i)^{\gamma_{2i}-1}
 \end{align}
-Thus we have a beta distribution. The expectations $\clrangle{\log v_i}=\psi(\gamma_{1i})-\psi(\gamma_{1i}+\gamma_{2i})$ and $\clrangle{\log 1-v_i}=\psi(\gamma_{2i})-\psi(\gamma_{1i}+\gamma_{2i})$ are required.
+where $\gamma_{1i}=\sum_{n=1}^{N} q(z_n=i)+1$ and $\gamma_{2i}=\sum_{n=1}^{N} q(z_n>i)+\clrangle{\alpha}$. To understand the $1(z_n>i)$ term, note that the term $(1-v_i)$ is only `activated' once the cluster assignment $z_n$ considered is for $i+1$ and above. Thus we have a beta distribution. The expectations $\clrangle{\log v_i}=\psi(\gamma_{1i})-\psi(\gamma_{1i}+\gamma_{2i})$ and $\clrangle{\log 1-v_i}=\psi(\gamma_{2i})-\psi(\gamma_{1i}+\gamma_{2i})$ are required.
 
 \textbf{For $z_n$}
 \begin{align}
 \nonumber&\prod_{n=1}^{N} p(x_n|z_n)p(z_n|\cv)\\
-\nonumber\log q(z_n)\propto &\csum 1(z_n=i)\clrangle{\log p(x_n|\lambda_t)}+\sum_{i=1}^{\infty} 1(z_n>i)\clrangle{\log(1-v_i)}+1(z_n=i)\clrangle{\log v_i}\\
+\nonumber\log q(z_n)\propto & 1(z_n=t)\clrangle{\log p(x_n|\lambda_t)}+\sum_{i=1}^{T} 1((z_n=t)>i)\clrangle{\log(1-v_i)}+1(z_n=t)\clrangle{\log v_i}\\
 \log q(z_n=t)\propto &\clrbracket{z_n=t}\clrbracket{\clrangle{\log \lambda_t}-\clrangle{\lambda_t}x_n+\clrangle{\log(v_t)}+\sum_{i=1}^{t-1}\clrangle{\log(1-v_i)}}
 \end{align}
 A multinomial is obtained for each observation $x_n$. Let $\pi_{n,t}\equiv q(z_n=t)$ and $\tilde{\pi_{n,t}}=\clrangle{\log \lambda_t}-\clrangle{\lambda_t}x_n+\clrangle{\log(v_t)}+\sum_{i=1}^{t-1}\clrangle{\log(1-v_i)}$. Thus,
@@ -73,4 +105,17 @@ A multinomial is obtained for each observation $x_n$. Let $\pi_{n,t}\equiv q(z_n
 & \log q(\lambda_t) \propto \clrbracket{\csumn q(z_n=t) +\delta -1}\log\lambda_t-\clrbracket{\csumn q(z_n=t)x_n+\delta}\lambda_t
 \end{align}
 A gamma distribution is obtained where the expectations $\clrangle{\lambda_t}=\frac{\csumn q(z_n=t) +\delta}{\csumn q(z_n=t)x_n+\delta}$ and $\clrangle{\log\lambda_t}=\psi(\csumn q(z_n=t) +\delta)-\log(\csumn q(z_n=t)x_n+\delta)$.
+
+The above variational distributions are iterated through till convergence of the lower bound:
+\begin{align}
+\nonumber lb=&\clrangle{\sum_{n=1}^{N}\csumt 1(z_n=t)\clrbracket{\log p(x_n|\lambda_t)-\log(v_t)+\sum_{i=1}^{t-1}\log(1-v_i)}}\\
+\nonumber &+\csumt \clrangle{\log p(\lambda_t)+(\alpha-1)\log(1-v_t)}+(T+\delta-1)\clrangle{\log\alpha}-\delta\clrangle{\alpha}\\
+\nonumber &-\clrangle{\csumt\clrbracket{\log q(\lambda_t)-\log q(v_t)}}-\clrangle{\csumn\csumt 1(z_n=t)\log q(z_n=t)}\\
+&-\clrangle{\log q(\alpha)}
+\end{align}
+
+This algorithm is restarted with random parameter initialisations and the restart with the highest lower bound is chosen.
+
+\section{Results}
+
 \end{document}
