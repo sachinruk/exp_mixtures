@@ -1,7 +1,7 @@
 function [phi_z_best, Elambda_best, class_best]=...
                                             DPVB(y,iterations,varargin)
 N=length(y);
-T=200;
+T=min(N,200);
 
 prior_flag=true;
 if nargin>2

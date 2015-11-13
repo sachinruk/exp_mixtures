@@ -1,14 +1,14 @@
 clear all
 clc
-% close all
+close all
 
 alpha = 1;
 % K = 2;
-% N = 4000;
-N=100;
+N = 4000;
+% N=100;
 a = 1;
 b = 1;
-iterations=2000;
+iterations=5e3;
 burnin=iterations*0.1;
 
 % CRP generative model
@@ -25,26 +25,26 @@ end
 z_true = sparse(1:N,z,1); %convert z to a indicator matrix
 K=size(z_true,2);
 y = gamrnd(1, 1./(z_true*theta(1:K)),N, 1);
-extremes = [min(1./y), max(1./y)];
+% extremes = [min(1./y), max(1./y)];
+extremes = [0.01 200];
 
 %DP MCMC scheme to find posteriors
-[z_inf,lambda] = DPposterior(y, extremes, iterations, alpha);
+[z_inf,lambda] = posteriorDP2(y, extremes, iterations, alpha);
 
 %VB to find posterior
 [phi_z, Elambda,class_vb]=DPVB(y,500);
 unique(class_vb)
 
-gibbs_steps=1; K=10;
-[lambda_chain, pi_chain, states] = posteriorRjmcmc2(y,K,extremes,...
-                                          iterations,gibbs_steps,alpha);
-                                      
-for i=1:K
-    state(i) = sum(states(burnin:end)== i);
-end                                      
-state=state/sum(state);
-rjmcmc_pi=pi_chain{mode(states)};
-idx=sum(rjmcmc_pi,2)>0;
-rjmcmc_pi=rjmcmc_pi(idx,:);
+% gibbs_steps=1; K=10;
+% [lambda_chain, pi_chain, states] = posteriorRjmcmc2(y,K,extremes,...
+%                                           iterations,gibbs_steps,alpha);                                    
+% for i=1:K
+%     state(i) = sum(states(burnin:end)== i);
+% end                                      
+% state=state/sum(state);
+% rjmcmc_pi=pi_chain{mode(states)};
+% idx=sum(rjmcmc_pi,2)>0;
+% rjmcmc_pi=rjmcmc_pi(idx,:);
 
 
 c=zeros(iterations,1);
@@ -54,7 +54,7 @@ end
 % disp(max(c))
 
 figure; plot(c); axis([1 iterations 0 max(c)])
-figure; hist(c);
+figure; hist(c,30);
 
 mcmc_c=confusionmat(z,z_inf(:,end));
 vb_c=confusionmat(z,class_vb);
@@ -75,6 +75,9 @@ figure; plot(nmi_mcmc); hold on; plot([1 iterations],[nmi_vb nmi_vb],'r')
 figure; plot(ari_mcmc); hold on; plot([1 iterations],[ari_vb ari_vb],'r')
 
 disp(length(unique(z)));
+
+figure; plot(lambda(:,1))
+hold on; plot(lambda(:,2),'r')
 % z_inf2 = sparse(1:N,z_inf(:,4687),1); %convert z to a indicator matrix
 % lof_z_true=lof(z_true); lof_z_inf2=lof(z_inf2);
 % figure; subplot(121); imagesc(lof_z_true);

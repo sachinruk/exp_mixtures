@@ -3,8 +3,8 @@ clear all
 close all
 
 alpha = 5;
-K = 2;
-N = 50;
+% K = 2;
+N = 200;
 a = 1;
 b = 1;
 iterations= 1e4;
@@ -18,12 +18,12 @@ z = mnrnd(1, pi, N);
 y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
 
-iterations2=20; gibbs_steps=1; models=6;
+iterations2=5; gibbs_steps=1; models=2;
 state=zeros(iterations2,models);
 for j=1:iterations2
     %MCMC scheme to find posteriors
-    [lambda_chain, pi_chain, states] = posteriorRjmcmc2(y,K,extremes,...
-                                          iterations,gibbs_steps,models,alpha);
+    [lambda_chain, pi_chain, states] = posteriorRjmcmc2(y,models,extremes,...
+                                          iterations,gibbs_steps,alpha);
     burnin=round(length(states)*0.1);
     for i=1:models
         state(j,i) = sum(states(burnin:end)== i);
@@ -74,6 +74,9 @@ for i=1:length(lambda_chain)
     lambdas=lambdas(idx);
     figure; hist(lambdas,100);
 end
+
+idx=lambda_chain{2}(:,1)>0 & lambda_chain{2}(:,1)<20;
+hist2d(lambda_chain{2}(idx,:),50, 50)
 % p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
 % disp(strcat('exact posterior of p(k=1|y): ',num2str(p_k1)));
 % disp(strcat('simulated posterior of p(k=1|y): ',num2str(state1/(state1+state2))));

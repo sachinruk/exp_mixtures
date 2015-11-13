@@ -1,11 +1,11 @@
 function [lambda_chain, pi_chain,state_transition] = ...
-                posteriorRjmcmc2(y,K,extremes,iterations,gibbs_steps,dims,alpha)
+                posteriorRjmcmc2(y,K,extremes,iterations,gibbs_steps,alpha)
 normC = diff(log(extremes));
 
 % allocate space for lambda1/2 chains and state transitions
-lambda_chain=cell(dims,1);
-pi_chain=cell(dims,1);
-for i=1:dims
+lambda_chain=cell(K,1);
+pi_chain=cell(K,1);
+for i=1:K
     lambda_chain{i} = zeros(iterations*(1+gibbs_steps), i);
     pi_chain{i} = zeros(iterations*(1+gibbs_steps), i);
 end
@@ -18,8 +18,8 @@ state_transition(1) = state;
 lambda_chain{state}(idx) = jeffreysPrior(1,extremes);
 pi_chain{state}(idx)=1;
 l=2;
-p_state=ones(1,dims);
-p_state(2:(dims-1))=0.5;
+p_state=ones(1,K);
+p_state(2:(K-1))=0.5;
 for i =1:iterations
 %     disp(i);
     % jump proposals from current state to new state along with new lambdas
@@ -44,7 +44,7 @@ for i =1:iterations
 %         log_pi_factor=
 %         if state==1
 %             log_q_state_jump=-log(2);
-%         elseif state==(dims-1)
+%         elseif state==(K-1)
 %             log_q_state_jump=log(2);
 %         end
     else % if goingdown
@@ -68,9 +68,9 @@ for i =1:iterations
 %             log_q_idx=log_q_idx-log(2);
 %         end
         log_q_state_jump=log(p_state(state))-log(p_state(state-1));
-%         if state==dims
+%         if state==K
 %             log_q_state_jump=log(2);
-%         elseif state==(dims+1)
+%         elseif state==(K+1)
 %             log_q_state_jump=-log(2);
 %         end            
     end    
@@ -101,13 +101,13 @@ for i =1:iterations
         pi_chain{state}(idx+j,:)=piNew;
     end
     idx=idx+gibbs_steps;
-    goingup=nextmove(state,dims);
+    goingup=nextmove(state,K);
     state_transition(l:(l+gibbs_steps)) = [state repmat(state,1,gibbs_steps)];
     l = l + gibbs_steps+1;
 end
 
 % %fill up missing states
-% for i=1:dims
+% for i=1:K
 %     for j=1:i
 %         lambda_chain{i}(:,j)=fillLast(lambda_chain{i}(:,j));
 %         pi_chain{i}(:,j)=fillLast(pi_chain{i}(:,j));
