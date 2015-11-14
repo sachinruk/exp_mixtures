@@ -19,7 +19,7 @@ y = gamrnd(1, 1./(z*lambda_'),N, 1);
 extremes = [min(1./y), max(1./y)];
 gibbs_steps=1;
 %MCMC scheme to find posteriors
-[lambda1, lambda2, pi_chain, states] = posteriorRjmcmc(y, K, extremes, iterations,gibbs_steps);
+[lambda_chain, pi_chain, states] = posteriorRjmcmc(y, K, extremes, iterations,gibbs_steps,alpha);
 
 % find how many are from state 1 and 2
 burnin=round(length(states)*0.1);

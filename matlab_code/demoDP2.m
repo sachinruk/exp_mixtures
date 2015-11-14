@@ -4,7 +4,7 @@ close all
 
 alpha = 1;
 % K = 2;
-N = 4000;
+N = 100;
 a = 1;
 b = 1;
 iterations=2000;
@@ -62,6 +62,7 @@ figure; plot(nmi_mcmc); hold on; plot([1 iterations],[nmi_vb nmi_vb],'r')
 figure; plot(ari_mcmc); hold on; plot([1 iterations],[ari_vb ari_vb],'r')
 
 disp(length(unique(z)));
+figure; plot(lambda(:,1))
 % z_inf2 = sparse(1:N,z_inf(:,4687),1); %convert z to a indicator matrix
 % lof_z_true=lof(z_true); lof_z_inf2=lof(z_inf2);
 % figure; subplot(121); imagesc(lof_z_true);
