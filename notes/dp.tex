@@ -22,9 +22,13 @@
 Model:
 \begin{align}
 \lambda_i\propto\frac{1}{\lambda_i}\qquad \lambda_i\in[a,b]\\
-p(z_n=k|z_{/n},\alpha)=\frac{n_k}{N-1+\alpha}\\
+p(z_n=k|z_{/n},\alpha)=\begin{cases}
+\frac{n_k}{N-1+\alpha} & \text{if }k\le K\\
+\frac{\alpha}{N-1+\alpha} & \text{if }k=K+1\\
+\end{cases}\\
 p(x_n|\mathbf{\lambda},z_n)=\lambda_{z_n}\exp(-\lambda_{z_n}x_n)
 \end{align}
+where $K$ is the number of clusters which is currently occupied.
 
 The posteriors on the given model are as follows. For $z_n$:
 \begin{align}
@@ -37,13 +41,29 @@ The posteriors on the given model are as follows. For $z_n$:
 \end{cases}\\
  \therefore & p(z_n=k|z_{/n},x_n,\mathbf{\lambda})=\frac{\tilde{p}(z_n=k|z_{/n},x_n,\mathbf{\lambda})}{\sum_{k=1}^{K+1}\tilde{p}(z_n=k|z_{/n},x_n,\mathbf{\lambda})}
 \end{align}
-where $K$ is the number of clusters which is currently occupied.
+
 
 For $\lambda_t$:
 \begin{align}
 \nonumber & p(\lambda_t|\cx,\cz)=\prod_{n=1}^{N}\clrbracket{\lambda_t\exp(-\lambda_t x_n)}^{1(z_n=t)}\frac{1}{\lambda_t}\\
 & p(\lambda_t|\cx,\cz)=\lambda^{n_t-1}\exp\clrbracket{-\lambda_t\sum_{n\in t} x_n}\qquad \lambda_t\in [a,b]
 \end{align}
+
+\begin{algorithm}
+%    \SetAlgoLined
+    \KwData{$\alpha$,$\cy$}
+    \KwResult{$\cz Chain,\clambda$.}
+    $\lambda_t\sim Ga(1,1) \qquad t\in{1,\cdots,T}$\\
+    $z_n\sim Cat([1,\cdots,1]/T) \qquad n\in{1,\cdots,N}$\\
+    \For{i=1:iterations}{
+    \For{n=1:N}{
+    $z_n\sim p(z_n|z_{/n},x_n,\mathbf{\lambda})$\\
+    }
+    $\mathbf{n}=sum(\cz)$\\
+    $\lambda_t\sim p(\lambda_t|\cx,\cz)$
+    }
+\end{algorithm}
+where $T$ is a large value such that it is much larger than the possible number of clusters.
 
 \section{Variational Bayes Method}
 Model:
@@ -116,6 +136,153 @@ The above variational distributions are iterated through till convergence of the
 
 This algorithm is restarted with random parameter initialisations and the restart with the highest lower bound is chosen.
 
+\clearpage
 \section{Results}
+The following synthetic experiments were performed:
+
+\begin{algorithm}
+%    \SetAlgoLined
+    \KwData{$\alpha$,$N$}
+    \KwResult{$\cy$.}
+    $\theta_1\sim \cGa(1,0.1) \qquad i\in{1,\cdots,N}$\\
+    $y_1\sim \cGa(1, \theta_1)$\\
+    $\mathbf{n}=[1]$\\
+    \For{$ i =2:iterations $}{
+        $idx \sim Cat \clrbracket{\frac{1}{i-1+\alpha}[\mathbf{n}\quad \alpha]}$\\
+        $y_i\sim \cGa(1, \theta_{idx})$\\
+        $\mathbf{n}=\mathbf{n}+idx$
+    }
+\end{algorithm}
+
+%\clearpage
+Experiment 1: $\alpha=1$ and $N=100$. Results of segmentation is in Figure \ref{fig:N100}.
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{nmi100}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{ari100}
+\caption{}
+\end{subfigure}
+\caption{NMI and ARI metrics respectively. Red line is metric obtained by VB while blue trace plot is MCMC algorithm.}
+\label{fig:N100}
+\end{figure}
+The number of clusters inferred by the MCMC DP algorithm is shown in Figure \ref{fig:z100}. The true number of clusters is 7.
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{z100}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{z100_hist}
+\caption{}
+\end{subfigure}
+\caption{}
+\label{fig:z100}
+\end{figure}
+
+Experiment 2: $\alpha=1$ and $N=4000$. Results of segmentation is in Figure \ref{fig:N4000}. The true number of clusters is 8. The histogram of number of clusters inferred is shown in Figure \ref{fig:z4000}
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{nmi}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{ari}
+\caption{}
+\end{subfigure}
+\caption{NMI and ARI metrics respectively. Red line is metric obtained by VB while blue trace plot is MCMC algorithm.}
+\label{fig:N4000}
+\end{figure}
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{z4000}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{z4000_hist}
+\caption{}
+\end{subfigure}
+\caption{}
+\label{fig:z4000}
+\end{figure}
+
+\clearpage
+For the next set of experiments the data was generated as follows:
+\begin{algorithm}
+%    \SetAlgoLined
+    \KwData{$\cpi$,$\clambda$, $N$}
+    \KwResult{$\cy$}
+%    $\theta_1\sim \cGa(1,0.1) \qquad i\in{1,\cdots,N}$\\
+%    $y_1\sim \cGa(1, \theta_1)$\\
+%    $\mathbf{n}=[1]$\\
+    \For{$ i =1:N $}{
+        $idx \sim Cat \clrbracket{\cpi}$\\
+        $y_i\sim \cGa(1, \lambda_{idx})$\\
+%        $\mathbf{n}=\mathbf{n}+idx$
+    }
+\end{algorithm}
+
+Experiment 3: $\cpi=[0.4\quad 0.6]$, $\clambda=[2\quad 10]$, $N=50$.
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{nmi50_2}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{ari50_2}
+\caption{}
+\end{subfigure}
+\caption{NMI and ARI metrics respectively}
+\label{fig:N50}
+\end{figure}
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{z50_2}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{z50_2_hist}
+\caption{}
+\end{subfigure}
+\caption{}
+\label{fig:z50}
+\end{figure}
+
+\clearpage
+Experiment 3: $\cpi=[0.4\quad 0.6]$, $\clambda=[2\quad 10]$, $N=1000$.
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{nmi1000_2}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{ari1000_2}
+\caption{}
+\end{subfigure}
+\caption{NMI and ARI metrics respectively}
+\label{fig:N1000}
+\end{figure}
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{z1000_2}
+\caption{}
+\end{subfigure}
+\begin{subfigure}{0.4\textwidth}
+\includegraphics[height=1.5in]{z1000_2_hist}
+\caption{}
+\end{subfigure}
+\caption{}
+\label{fig:z1000}
+\end{figure}
 
 \end{document}

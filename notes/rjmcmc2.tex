@@ -133,9 +133,10 @@ Note that this algorithm will not be sufficient to explore the posterior space. 
 \begin{align}
 & p(\lambda_{[k],idx}|y,k=1) \propto \lambda_{[k],idx}^{N-1}\exp(-\lambda_{[k],idx}\sum_{i=1}^{N}y_i)\qquad \lambda_{[k],idx}\in[a,b]\\
 & p(\lambda_{[k],j}|y,z,k=2) \propto \lambda_{[k],j}^{n_j-1}\exp(-\lambda_{[k],j}\sum_{i\in[j]}y_i)\qquad \lambda_{[k],j}\in[a,b]\\
-& p(z_i=j|y,\lambda_{12},\lambda_{22}) \propto \lambda_{[k+1],idx},\lambda_{[k+1],idx+1}\exp(-\lambda_{[k+1],idx},\lambda_{[k+1],idx+1}y_i)\pi\\
-& p(\pi) = Dir(\alpha+n_1,\alpha+n_2)
+& p(z_i=j|y,\lambda_{[k]\cdot}) \propto \lambda_{[k],j}\exp(-\lambda_{[k],j}y_i)\pi_j\\
+& p(\pi|\cz) = Dir(\alpha+\mathbf{n})
 \end{align}
+where $\mathbf{n}=sum(\cz)$. $p(z_i=j|y,\lambda_{[k]\cdot})$ is a categorical distribution where the probability of $z_i=j$ is the normalised $\lambda_{[k],j}\exp(-\lambda_{[k],j}y_i)\pi_j$.
 
  \section{RJMCMC Algorithm}
  See Algorithm \ref{alg:post}.
@@ -223,59 +224,86 @@ For this experiment data is generated as follows:
 \end{align*}
 where $p(y_i|\lambda_{[k+1],idx},\lambda_{[k+1],idx+1})=\lambda_{[k+1],idx},\lambda_{[k+1],idx+1}\exp(-\lambda_{[k+1],idx},\lambda_{[k+1],idx+1}y_i)$.
 
-The posterior $p(k=1|y)$ is calculated using the simulations and compared against the true posterior. The true posterior is,
+However, we let $K=6$ for the RJMCMC model. The inferred posterior $p(k=1|y)$ is calculated using the simulations from Algorithm \ref{alg:post} and compared against the true posterior. The true posterior is,
 \begin{align}
-p(k=1|y)=&\frac{p(y|k=1)p(k=1)}{p(y|k=1)p(k=1)+p(y|k=2)p(k=2)}
+p(k=j|y)=&\frac{p(y|k=j)p(k=j)}{\sum_i p(y|k=i)p(k=i)}
 \end{align}
-since the prior $p(k=1)=p(k=2)$, it may be ignored from the above proportion.
+since the prior $p(k=j)$ is constant, it may be ignored from the above proportion.
 \begin{align*}
-p(y|k=1)=& \int \prod_{i=1}^{N}p(y_i|\lambda_{[k],idx},k=1)p(\lambda_{[k],idx}) d\lambda_{[k],idx}\\
-p(y|k=2)=& \int \prod_{i=1}^{N}\left(\pi p(y_i|\lambda_{12},k=2)+(1-\pi)p(y_i|\lambda_{22},k=2)\right)p(\lambda_{12})p(\lambda_{22})p(\pi) d\lambda_{12}d\lambda_{22}d\pi
+%p(y|k=1)=& \int \prod_{i=1}^{N}p(y_i|\lambda_{[1]},k=1)p(\lambda_{[k],idx}) d\lambda_{[k],idx}\\
+p(y|k=j)=& \int \prod_{i=1}^{N}\left(\sum_{i=1}^j\pi_{[j]i} p(y_i|\lambda_{[j]i})\right)\prod_{i=1}^{j}p(\lambda_{[j]i})p(\pi_{[j]}) d\lambda_{[j]}d\pi_{[j]}
 \end{align*}
-In order to generate the exact posterior, we sample $10^6$ samples from the priors $p(\lambda_{[k],idx})$, $p(\lambda_{12})$, $p(\lambda_{22})$, $p(\pi)$. The posteriors are approximated as:
+In order to generate the exact posterior, we sample $10^6$ samples from the priors $p(\lambda_{[k],idx})$. The posteriors are approximated as:
 \begin{align}
-p(y|k=1)\approx &\sum_{j=1}^{10^6}\prod_{i=1}^{N}p(y_i|\lambda_{[k],idx}^{(j)},k=1)\\
-p(y|k=2)\approx & \sum_{j=1}^{10^6} \prod_{i=1}^{N}\left(\pi^{(j)} p(y_i|\lambda_{12}^{(j)},k=2)+(1-\pi^{(j)})p(y_i|\lambda_{22}^{(j)},k=2)\right)
+%p(y|k=1)\approx &\sum_{j=1}^{10^6}\prod_{i=1}^{N}p(y_i|\lambda_{[k],idx}^{(j)},k=1)\\
+p(y|k=j)\approx & \frac{1}{10^6}\sum_{j=1}^{10^6} \prod_{i=1}^{N}\left(\sum_{i=1}^j\pi_{[j]i} p(y_i|\lambda_{[j]i})\right)
 \end{align}
 
-The above `exact' posterior is compared against the simulated posterior. The relative number of state 1 from stateChain is the posterior probability from the simulated set.
+The above `exact' posterior is compared against the simulated posterior. The relative number of state $j$ from stateChain is the posterior probability from the simulated set.
 
-\begin{table}[h]
+Experiment 1: N=50, K=6:
+\begin{figure}[h]
 \centering
-\begin{tabular}{llll}
-\hline
-& \multicolumn{3}{c}{N}\\
-\hline
-& 50 & 100 & 200 \\
-\hline
-Exact & 0.63991 & 0.51736 & 0.00048488\\
-Simulated & 0.64339 & 0.50834 & 0.00015789\\
-\hline
-\end{tabular}
-\caption{Comparison of simulated and exact posterior of $p(k=1|y)$.}
-\end{table}
-
-The posterior $p(\lambda|y,k=1)$ and the posterior $p(\lambda|y,k=2)$ are plotted below in Figure \ref{fig:posteriors} for N=100 case.
-
-\begin{figure}
-\centering
-\begin{subfigure}{0.3 \textwidth}
-\centering
-\includegraphics[height=1.5in]{lambda_11}
-\caption{}
-\end{subfigure}
-\begin{subfigure}{0.3 \textwidth}
-\centering
-\includegraphics[height=1.5in]{lambda_22}
-\caption{}
-\end{subfigure}
-\begin{subfigure}{0.3 \textwidth}
-\centering
-\includegraphics[height=1.5in]{lambda_22_3d}
-\caption{}
-\end{subfigure}
-\caption{}
-\label{fig:posteriors}
+\includegraphics[height=1.5in]{rjmcmc_6}
 \end{figure}
+%\begin{table}[h]
+%\centering
+%\begin{tabular}{llll}
+%\hline
+%& \multicolumn{3}{c}{N}\\
+%\hline
+%& 50 & 100 & 200 \\
+%\hline
+%Exact & 0.63991 & 0.51736 & 0.00048488\\
+%Simulated & 0.64339 & 0.50834 & 0.00015789\\
+%\hline
+%\end{tabular}
+%\caption{Comparison of simulated and exact posterior of $p(k=1|y)$.}
+%\end{table}
+
+\clearpage
+Experiment 2: N=50, k=2
+\begin{figure}[h]
+\centering
+\includegraphics[height=1in]{rjmcmc_2}
+\end{figure}
+
+Experiment 2: N=200, k=2
+\begin{figure}[h]
+\centering
+\includegraphics[height=1in]{rjmcmc_22}
+\end{figure}
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.4 \textwidth}
+\includegraphics[height=1.5in]{lambda2_k2_n200}
+\end{subfigure}
+\begin{subfigure}{0.4 \textwidth}
+\includegraphics[height=1.5in]{lambda2_k2_n200_2}
+\end{subfigure}
+\end{figure}
+
+%The posterior $p(\lambda|y,k=1)$ and the posterior $p(\lambda|y,k=2)$ are plotted below in Figure \ref{fig:posteriors} for N=100 case.
+%
+%\begin{figure}
+%\centering
+%\begin{subfigure}{0.3 \textwidth}
+%\centering
+%\includegraphics[height=1.5in]{lambda_11}
+%\caption{}
+%\end{subfigure}
+%\begin{subfigure}{0.3 \textwidth}
+%\centering
+%\includegraphics[height=1.5in]{lambda_22}
+%\caption{}
+%\end{subfigure}
+%\begin{subfigure}{0.3 \textwidth}
+%\centering
+%\includegraphics[height=1.5in]{lambda_22_3d}
+%\caption{}
+%\end{subfigure}
+%\caption{}
+%\label{fig:posteriors}
+%\end{figure}
 
 \end{document}

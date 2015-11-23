@@ -68,6 +68,26 @@ disp([mean(pis)-std(pis); mean(pis)+std(pis)]);
 % % disp(p_k_est)
 % disp([mean(p_k)-std(p_k); mean(p_k)+std(p_k)]);
 % 
+for i=1:length(lambda_chain)
+    lambdas=lambda_chain{i}(:,1);
+    idx=lambdas<50 & lambdas>0;
+    lambdas=lambdas(idx);
+    figure; hist(lambdas,100);
+end
+
+idx=lambda_chain{2}(:,1)>0 & lambda_chain{2}(:,1)<20;
+hist2d(lambda_chain{2}(idx,:),50, 50)
+% p_k1 = 1./(1.+exp(log_py_k2-log_py_k1));
+% disp(strcat('exact posterior of p(k=1|y): ',num2str(p_k1)));
+% disp(strcat('simulated posterior of p(k=1|y): ',num2str(state1/(state1+state2))));
+% 
+% %plot the outputs of simulated lambdas
+% figure()
+% hist(lambda1(lambda1<50 ),100); title('lambda11 posterior')
+% hist2d(lambda2,100,100,[0 20],[0 20]); title('lambda2 posterior')
+% view(90,270)
+% idx=lambda2(:,1)<20; figure; hist(lambda2(idx,1),200)
+% idx=lambda2(:,2)<20; figure; hist(lambda2(idx,2),200)
 % 
 % for i=1:length(lambda_chain)
 %     lambdas=lambda_chain{i}(:,1);
